@@ -88,8 +88,7 @@ export default async function handler(req, res) {
   }
 
   if (nextNode && spore.PELAGOS.hops_remaining > 0) {
-    await new Promise(r => setTimeout(r, totalDelay));
-    await fetch(nextNode, {
+    fetch(nextNode, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(spore),
