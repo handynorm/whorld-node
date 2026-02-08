@@ -41,23 +41,6 @@ export default async function handler(req, res) {
     iso: new Date().toISOString(),
   });
 
-  try {
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
-    await supabase.from("pelagos_witness").insert([{
-      sais,
-      node: NODE_NAME,
-      hop_index,
-      cy: spore?.CROWN?.GLYPHON_TS ?? null,
-      spore_hash: sais,
-      note: "fibonacci",
-    }]);
-  } catch (e) {
-    // silent
-  }
-
   spore.PELAGOS.hops_remaining -= 1;
 
   const temperature = spore?.CROWN?.temperature ?? spore?.temperature ?? 0.5;
@@ -82,6 +65,27 @@ export default async function handler(req, res) {
   }
 
   const nextNode = candidates[Math.floor(Math.random() * candidates.length)];
+  const nextHostname = nextNode ? new URL(nextNode).hostname : null;
+
+  try {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    await supabase.from("pelagos_fibonacci").insert([{
+      sais,
+      node: NODE_NAME,
+      hop_index,
+      cy: spore?.CROWN?.GLYPHON_TS ?? null,
+      temperature,
+      delay_ms: totalDelay,
+      next_node: nextHostname,
+      spore_hash: sais,
+      note: "fibonacci",
+    }]);
+  } catch (e) {
+    // silent
+  }
 
   if (nextNode && spore.PELAGOS.hops_remaining > 0) {
     await new Promise(r => setTimeout(r, totalDelay));
@@ -98,6 +102,6 @@ export default async function handler(req, res) {
     sais,
     hops_remaining: spore.PELAGOS.hops_remaining,
     delay_ms: totalDelay,
-    next: nextNode ? new URL(nextNode).hostname : null,
+    next: nextHostname,
   });
 }
