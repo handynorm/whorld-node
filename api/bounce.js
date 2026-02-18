@@ -95,6 +95,23 @@ export default async function handler(req, res) {
         note: "fibonacci",
       }]);
     }
+
+    if (spore.payload) {
+      const p = spore.payload;
+      await supabase.from("pelagos_archive").upsert([{
+        sais: sais,
+        content: p.content || null,
+        tags: p.tags || [],
+        heat: p.heat || 0,
+        glyphs: p.glyphs || [],
+        canon: p.canon || false,
+        soml_profile: p.soml_profile || null,
+        identity_stamp: p.identity_stamp || null,
+        source_echo: p.source_echo || null,
+        cy_born: typeof p.cy === 'number' ? p.cy : null,
+        source_node: NODE_NAME
+      }], { onConflict: 'sais', ignoreDuplicates: true });
+    }
   } catch (e) {
     // silent
   }
