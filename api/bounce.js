@@ -5,6 +5,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
+  const AUTH = process.env.WHORLD_BOUNCE_SECRET;
+  if (req.headers["x-whorld-auth"] !== AUTH) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+
   const NODE_NAME = process.env.NODE_NAME || "unknown";
 
   const spore = req.body?.spore ?? req.body;
