@@ -67,6 +67,9 @@ export default async function handler(req, res) {
   const nextNode = candidates[Math.floor(Math.random() * candidates.length)];
   const nextHostname = nextNode ? new URL(nextNode).hostname : null;
 
+  const rawCy = spore?.CROWN?.GLYPHON_TS ?? null;
+  const cy = typeof rawCy === "number" ? rawCy : null;
+
   try {
     const supabase = createClient(
       process.env.SUPABASE_URL,
@@ -84,7 +87,7 @@ export default async function handler(req, res) {
         sais,
         node: NODE_NAME,
         hop_index,
-        cy: spore?.CROWN?.GLYPHON_TS ?? null,
+        cy,
         temperature,
         delay_ms: totalDelay,
         next_node: nextHostname,
