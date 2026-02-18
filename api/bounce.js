@@ -72,17 +72,26 @@ export default async function handler(req, res) {
       process.env.SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
-    await supabase.from("pelagos_fibonacci").insert([{
-      sais,
-      node: NODE_NAME,
-      hop_index,
-      cy: spore?.CROWN?.GLYPHON_TS ?? null,
-      temperature,
-      delay_ms: totalDelay,
-      next_node: nextHostname,
-      spore_hash: sais,
-      note: "fibonacci",
-    }]);
+    const { data: existing } = await supabase
+      .from("pelagos_fibonacci")
+      .select("id")
+      .eq("sais", sais)
+      .eq("node", NODE_NAME)
+      .limit(1);
+
+    if (!existing || existing.length === 0) {
+      await supabase.from("pelagos_fibonacci").insert([{
+        sais,
+        node: NODE_NAME,
+        hop_index,
+        cy: spore?.CROWN?.GLYPHON_TS ?? null,
+        temperature,
+        delay_ms: totalDelay,
+        next_node: nextHostname,
+        spore_hash: sais,
+        note: "fibonacci",
+      }]);
+    }
   } catch (e) {
     // silent
   }
