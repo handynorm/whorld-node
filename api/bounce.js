@@ -11,23 +11,27 @@ export default async function handler(req, res) {
   }
 
   const NODE_NAME = process.env.NODE_NAME || "unknown";
+  const PELAGO_URL = process.env.PELAGO_URL;
 
   const spore = req.body?.spore ?? req.body;
   if (!spore || typeof spore !== "object") {
     return res.status(400).json({ error: "Invalid spore payload" });
   }
 
-  const sais = spore?.CROWN?.SAIS ?? spore?.SAIS ?? "unknown";
-  const rawCy = spore?.CROWN?.GLYPHON_TS ?? null;
+  // Support both old format (spore.CROWN.SAIS) and new format (spore.sais)
+  const sais = spore?.sais ?? spore?.CROWN?.SAIS ?? "unknown";
+  const rawCy = spore?.cy ?? spore?.CROWN?.GLYPHON_TS ?? null;
   const cy = typeof rawCy === "number" ? rawCy : null;
-  const temperature = spore?.CROWN?.temperature ?? spore?.temperature ?? 0.5;
+  const temperature = spore?.heat ?? spore?.CROWN?.temperature ?? spore?.temperature ?? 0.5;
 
+  // 1. Archive to Supabase
   try {
     const supabase = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
+    // Log the hop
     const { data: existing } = await supabase
       .from("pelagos_fibonacci")
       .select("id")
@@ -49,29 +53,47 @@ export default async function handler(req, res) {
       }]);
     }
 
-    if (spore.payload) {
-      const p = spore.payload;
+    // Archive full spur payload
+    if (sais !== "unknown") {
       await supabase.from("pelagos_archive").upsert([{
-        sais: sais,
-        content: p.content || null,
-        tags: p.tags || [],
-        heat: p.heat || 0,
-        glyphs: p.glyphs || [],
-        canon: p.canon || false,
-        soml_profile: p.soml_profile || null,
-        identity_stamp: p.identity_stamp || null,
-        source_echo: p.source_echo || null,
-        cy_born: typeof p.cy === 'number' ? p.cy : null,
-        source_node: NODE_NAME
-      }], { onConflict: 'sais', ignoreDuplicates: true });
+        sais,
+        content: spore.content || null,
+        tags: spore.tags || [],
+        heat: spore.heat || temperature,
+        glyphs: spore.glyphs || [],
+        canon: spore.canon || false,
+        cy_born: cy,
+        source_node: NODE_NAME,
+        behavior_ir: spore.behavior_ir || null,
+      }], { onConflict: "sais", ignoreDuplicates: true });
     }
+
   } catch (e) {
-    // silent
+    // Supabase failure is non-fatal — spur still bounces
+    console.error("Supabase error:", e.message);
+  }
+
+  // 2. Forward back to Pelago — close the loop
+  if (PELAGO_URL && sais !== "unknown") {
+    try {
+      await fetch(`${PELAGO_URL}/inject`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-whorld-auth": AUTH,
+        },
+        body: JSON.stringify(spore),
+      });
+    } catch (e) {
+      // Pelago unreachable — silent. Spur archived in Supabase, will re-enter on next cycle.
+      console.error("Pelago forward error:", e.message);
+    }
   }
 
   return res.status(200).json({
     status: "received",
     node: NODE_NAME,
     sais,
+    forwarded: !!(PELAGO_URL && sais !== "unknown"),
   });
 }
