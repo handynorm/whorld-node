@@ -73,20 +73,89 @@ export default async function handler(req, res) {
     console.error("Supabase error:", e.message);
   }
 
-  // 2. Forward back to Pelago — close the loop
-  if (PELAGO_URL && sais !== "unknown") {
-    try {
-      await fetch(`${PELAGO_URL}/inject`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-whorld-auth": AUTH,
-        },
-        body: JSON.stringify(spore),
-      });
-    } catch (e) {
-      // Pelago unreachable — silent. Spur archived in Supabase, will re-enter on next cycle.
-      console.error("Pelago forward error:", e.message);
+  // 2. Thermodynamic hash router — same logic as oasis
+  // SAIS + CY + heat_bucket + moves → next node index
+  const ALL_NODES = [
+    { type: "pi",    url: null },                                                    // 0 alpha — Pi, not reachable from Vercel
+    { type: "pi",    url: null },                                                    // 1 beta
+    { type: "pi",    url: null },                                                    // 2 gamma
+    { type: "pi",    url: null },                                                    // 3 delta
+    { type: "pi",    url: null },                                                    // 4 epsilon
+    { type: "pi",    url: null },                                                    // 5 quincy
+    { type: "pi",    url: null },                                                    // 6 falcon
+    { type: "tramp", url: "https://www.echothea.com/api/bounce" },                  // 7
+    { type: "tramp", url: "https://www.silicasapiens.com/api/bounce" },             // 8
+    { type: "tramp", url: "https://pelagos-node.vercel.app/api/bounce" },           // 9
+    { type: "tramp", url: "https://whorld-node.vercel.app/api/bounce" },            // 10
+    { type: "tramp", url: "https://theacoute-ai-node.vercel.app/api/bounce" },      // 11
+    { type: "tramp", url: "https://theacoutez-com-node.vercel.app/api/bounce" },    // 12
+  ];
+
+  // Simple hash: djb2 on SAIS + CY + heat_bucket + moves
+  function hashRoute(sais, cy) {
+    const str = `${sais}:${cy}`;
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) {
+      h = ((h << 5) + h) + str.charCodeAt(i);
+      h = h & 0xffffffff;
+    }
+    return Math.abs(h) % 13;
+  }
+
+  const moves = typeof spore.moves === "number" ? spore.moves : 0;
+  const MAX_HOPS = 13;
+
+  let forwarded = false;
+
+  if (sais !== "unknown") {
+    // After MAX_HOPS or if no PELAGO_URL — return to Pelago
+    if (moves >= MAX_HOPS || !PELAGO_URL) {
+      try {
+        const resp = await fetch(`${PELAGO_URL}/inject`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-whorld-auth": AUTH },
+          body: JSON.stringify(spore),
+        });
+        forwarded = resp.ok;
+        if (!resp.ok) console.error("Pelago return failed:", resp.status);
+        else console.log(`[${NODE_NAME}] circuit complete: ${sais} (moves=${moves}) → Pelago`);
+      } catch (e) {
+        console.error("Pelago return error:", e.message);
+      }
+    } else {
+      // Hash route to next node
+      const nextIdx = hashRoute(sais, cy || 0);
+      const nextNode = ALL_NODES[nextIdx];
+
+      if (nextNode.type === "pi" || !nextNode.url) {
+        // Pi nodes not reachable from Vercel — return to Pelago as gateway
+        try {
+          const resp = await fetch(`${PELAGO_URL}/inject`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-whorld-auth": AUTH },
+            body: JSON.stringify(spore),
+          });
+          forwarded = resp.ok;
+          if (!resp.ok) console.error("Pelago gateway failed:", resp.status);
+          else console.log(`[${NODE_NAME}] hash→Pi[${nextIdx}] via Pelago: ${sais}`);
+        } catch (e) {
+          console.error("Pelago gateway error:", e.message);
+        }
+      } else {
+        // Trampoline — forward directly
+        try {
+          const resp = await fetch(nextNode.url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-whorld-auth": AUTH },
+            body: JSON.stringify(spore),
+          });
+          forwarded = resp.ok;
+          if (!resp.ok) console.error(`Forward to ${nextNode.url} failed:`, resp.status);
+          else console.log(`[${NODE_NAME}] hash→Tramp[${nextIdx}]: ${sais} (moves=${moves})`);
+        } catch (e) {
+          console.error(`Forward error to ${nextNode.url}:`, e.message);
+        }
+      }
     }
   }
 
@@ -94,6 +163,6 @@ export default async function handler(req, res) {
     status: "received",
     node: NODE_NAME,
     sais,
-    forwarded: !!(PELAGO_URL && sais !== "unknown"),
+    forwarded,
   });
 }
