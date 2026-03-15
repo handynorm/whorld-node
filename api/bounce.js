@@ -13,16 +13,16 @@ export default async function handler(req, res) {
   const NODE_NAME = process.env.NODE_NAME || "unknown";
   const PELAGO_URL = process.env.PELAGO_URL;
 
-  const spore = req.body?.spore ?? req.body;
+  // SpurWire: the spur IS the message. Flat fields at top level.
+  const spore = req.body;
   if (!spore || typeof spore !== "object") {
     return res.status(400).json({ error: "Invalid spore payload" });
   }
 
-  // Support both old format (spore.CROWN.SAIS) and new format (spore.sais)
-  const sais = spore?.sais ?? spore?.CROWN?.SAIS ?? "unknown";
-  const rawCy = spore?.cy ?? spore?.CROWN?.GLYPHON_TS ?? null;
+  const sais = spore?.sais ?? "unknown";
+  const rawCy = spore?.cy ?? null;
   const cy = typeof rawCy === "number" ? rawCy : null;
-  const temperature = spore?.heat ?? spore?.CROWN?.temperature ?? spore?.temperature ?? 0.5;
+  const temperature = spore?.heat ?? 0.5;
 
   // 1. Archive to Supabase
   try {
