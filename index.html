@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WHORLD Node — WHORLD Pelagos Node</title>
+<title>WHORLD — Kinetic Memory Substrate</title>
+<meta name="description" content="WHORLD is a kinetic memory substrate. Data that moves organizes itself. The transfer medium is the storage medium.">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
 
@@ -12,8 +13,10 @@
   :root {
     --bg: #050508;
     --accent: #00ffcc;
+    --accent2: #0088ff;
     --dim: rgba(255,255,255,0.15);
     --text: rgba(255,255,255,0.85);
+    --muted: rgba(255,255,255,0.35);
   }
 
   body {
@@ -25,10 +28,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow-x: hidden;
+    padding: 2rem 1rem;
   }
 
-  /* Subtle grid background */
+  /* Grid background */
   body::before {
     content: '';
     position: fixed;
@@ -37,7 +41,7 @@
       linear-gradient(var(--dim) 1px, transparent 1px),
       linear-gradient(90deg, var(--dim) 1px, transparent 1px);
     background-size: 60px 60px;
-    opacity: 0.08;
+    opacity: 0.06;
     pointer-events: none;
   }
 
@@ -45,130 +49,410 @@
   body::after {
     content: '';
     position: fixed;
-    width: 600px;
-    height: 600px;
+    width: 700px;
+    height: 700px;
     border-radius: 50%;
     background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-    opacity: 0.04;
+    opacity: 0.03;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
-    animation: pulse 6s ease-in-out infinite;
+    animation: pulse 8s ease-in-out infinite;
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 0.04; transform: translate(-50%, -50%) scale(1); }
-    50% { opacity: 0.08; transform: translate(-50%, -50%) scale(1.1); }
+    0%, 100% { opacity: 0.03; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 0.07; transform: translate(-50%, -50%) scale(1.15); }
   }
 
   .container {
     position: relative;
     text-align: center;
-    padding: 2rem;
-    animation: fadeIn 1.5s ease forwards;
+    max-width: 680px;
+    width: 100%;
+    animation: fadeIn 1.8s ease forwards;
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(16px); }
+    from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* Logo */
   .icon {
-    font-size: 4rem;
+    font-size: 3.5rem;
     margin-bottom: 1.5rem;
     display: block;
-    filter: drop-shadow(0 0 20px var(--accent));
-    animation: float 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 24px var(--accent));
+    animation: float 5s ease-in-out infinite;
   }
 
   @keyframes float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+    50% { transform: translateY(-10px); }
   }
 
-  .node-name {
+  /* WHORLD wordmark */
+  .wordmark {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.6rem;
+    font-size: clamp(2rem, 8vw, 3.2rem);
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.2em;
     color: var(--accent);
     text-transform: uppercase;
-    margin-bottom: 0.75rem;
-    text-shadow: 0 0 30px var(--accent);
+    text-shadow: 0 0 40px var(--accent);
+    margin-bottom: 0.6rem;
   }
 
-  .tagline {
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
-    color: rgba(255,255,255,0.45);
-    margin-bottom: 2.5rem;
+  /* One line */
+  .oneliner {
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    letter-spacing: 0.12em;
+    color: var(--muted);
     text-transform: uppercase;
+    margin-bottom: 2.5rem;
   }
 
   .divider {
-    width: 120px;
+    width: 160px;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    margin: 0 auto 2rem;
-    opacity: 0.4;
+    margin: 0 auto 2.5rem;
+    opacity: 0.35;
   }
 
-  .status {
-    display: inline-flex;
+  /* Live counter */
+  .counter-block {
+    margin-bottom: 2.5rem;
+  }
+
+  .counter-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .counter {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.6rem, 6vw, 2.8rem);
+    font-weight: 700;
+    color: var(--accent);
+    text-shadow: 0 0 30px var(--accent);
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+  }
+
+  .counter-sub {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  /* Three principles */
+  .principles {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .principle {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 1.2rem;
+    border: 1px solid rgba(0, 255, 204, 0.08);
+    background: rgba(0, 255, 204, 0.02);
+  }
+
+  .principle-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--accent);
+    opacity: 0.5;
+    min-width: 1.5rem;
+    padding-top: 0.1rem;
+  }
+
+  .principle-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.6;
+  }
+
+  .principle-text strong {
+    color: rgba(255,255,255,0.85);
+    font-weight: normal;
+  }
+
+  /* Empirical result */
+  .result-block {
+    margin-bottom: 2.5rem;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(0, 136, 255, 0.15);
+    background: rgba(0, 136, 255, 0.03);
+  }
+
+  .result-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: rgba(0, 136, 255, 0.6);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .result-number {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    color: var(--accent2);
+    text-shadow: 0 0 20px var(--accent2);
+    margin-bottom: 0.4rem;
+  }
+
+  .result-text {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.6;
+  }
+
+  /* Fleet status */
+  .fleet-block {
+    margin-bottom: 2.5rem;
+  }
+
+  .fleet-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .nodes {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .node {
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    color: rgba(255,255,255,0.3);
+    gap: 0.4rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.25);
     text-transform: uppercase;
   }
 
-  .dot {
-    width: 6px;
-    height: 6px;
+  .node-dot {
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: var(--accent);
     animation: blink 2s ease-in-out infinite;
   }
 
+  .node:nth-child(2) .node-dot { animation-delay: 0.3s; }
+  .node:nth-child(3) .node-dot { animation-delay: 0.6s; }
+  .node:nth-child(4) .node-dot { animation-delay: 0.9s; }
+  .node:nth-child(5) .node-dot { animation-delay: 1.2s; }
+  .node:nth-child(6) .node-dot { animation-delay: 1.5s; }
+  .node:nth-child(7) .node-dot { animation-delay: 1.8s; }
+  .node:nth-child(8) .node-dot { animation-delay: 2.1s; }
+
   @keyframes blink {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; }
+    50% { opacity: 0.15; }
   }
 
-  .network {
-    margin-top: 2.5rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.18);
+  .divider2 {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    margin: 0 auto 2rem;
+  }
+
+  /* Contact */
+  .contact-block {
+    margin-bottom: 1.5rem;
+  }
+
+  .contact-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.2);
     text-transform: uppercase;
+    margin-bottom: 0.8rem;
   }
 
-  .network a {
-    color: rgba(255,255,255,0.25);
-    text-decoration: none;
-    transition: color 0.3s;
+  .contact-line {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 0.3rem;
   }
 
-  .network a:hover {
+  .contact-line a {
     color: var(--accent);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+  }
+
+  .contact-line a:hover {
+    opacity: 1;
+  }
+
+  /* Footer */
+  .footer {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.12);
+    text-transform: uppercase;
+    margin-top: 1rem;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent);
   }
 </style>
 </head>
 <body>
   <div class="container">
-    <span class="icon">⬡</span>
-    <div class="node-name">WHORLD Node</div>
-    <div class="tagline">Distributed memory fabric — data persists in motion</div>
+
+    <span class="icon">🌊</span>
+
+    <div class="wordmark">WHORLD</div>
+    <div class="oneliner">The transfer medium is the storage medium</div>
+
     <div class="divider"></div>
-    <div class="status">
-      <div class="dot"></div>
-      WHORLD Pelagos Network Node — Active
+
+    <!-- Live counter -->
+    <div class="counter-block">
+      <div class="counter-label">Physical memory relocations</div>
+      <div class="counter" id="counter">831,400,000</div>
+      <div class="counter-sub">and counting — across 8 nodes in 3 cities</div>
     </div>
-    <div class="network">
-      <a href="https://whorld.ai">whorld.ai</a>
+
+    <!-- Status -->
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      Ocean active — Oakland · Sebastopol · San Francisco
     </div>
+
+    <!-- Three principles -->
+    <div class="principles">
+      <div class="principle">
+        <div class="principle-num">01</div>
+        <div class="principle-text">
+          <strong>Data that moves organizes itself.</strong> Spurs circulate continuously through computer memory — not stored at fixed addresses but physically relocating through DRAM across a distributed fleet. Related data finds each other through thermal affinity. No clustering algorithm. Physics only.
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle-num">02</div>
+        <div class="principle-text">
+          <strong>Heat governs findability.</strong> Human attention warms data. Warm data moves slowly — it's findable. Cold data moves fast — it's in deep archive. The thermal landscape is the index. No query planner. No B-tree. The physics builds the index.
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle-num">03</div>
+        <div class="principle-text">
+          <strong>Dead data wakes up.</strong> COBOL flat files. Microfiche scans. Decommissioned system exports. Archive data that no modern AI can touch. In WHORLD it's not dead — it's cold. Cold means fast. Fast means circulating. Circulating means finding relationships nobody programmed.
+        </div>
+      </div>
+    </div>
+
+    <!-- Empirical result -->
+    <div class="result-block">
+      <div class="result-label">Empirical result — KMB-A1</div>
+      <div class="result-number">2.08×</div>
+      <div class="result-text">
+        Thermal clustering above chance · p &lt; 0.001 · 1,000 permutation trials · zero null hits<br>
+        Data self-organizes into semantically coherent thermal bands through heat and motion alone.<br>
+        No clustering algorithm present.
+      </div>
+    </div>
+
+    <!-- Fleet -->
+    <div class="fleet-block">
+      <div class="fleet-label">Live fleet</div>
+      <div class="nodes">
+        <div class="node"><div class="node-dot"></div>alpha · Oakland</div>
+        <div class="node"><div class="node-dot"></div>beta · Oakland</div>
+        <div class="node"><div class="node-dot"></div>gamma · Oakland</div>
+        <div class="node"><div class="node-dot"></div>delta · Oakland</div>
+        <div class="node"><div class="node-dot"></div>epsilon · Oakland</div>
+        <div class="node"><div class="node-dot"></div>falcon · Sebastopol</div>
+        <div class="node"><div class="node-dot"></div>quincy · San Francisco</div>
+        <div class="node"><div class="node-dot"></div>mini-pro · Oakland</div>
+      </div>
+    </div>
+
+    <div class="divider2"></div>
+
+    <!-- Contact -->
+    <div class="contact-block">
+      <div class="contact-label">Contact</div>
+      <div class="contact-line">Norman Carley — Founder &amp; Inventor</div>
+      <div class="contact-line">Jennifer Raiser — Business &amp; Investor Relations</div>
+      <div class="contact-line">Patent Pending — USPTO 64/013,719 — Seven Provisionals</div>
+      <div class="contact-line" style="margin-top:0.6rem;">
+        <a href="mailto:norm@whorld.ai">norm@whorld.ai</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      Morrison &amp; Foerster LLP · Patent Prosecution &amp; Entity Formation · Confidential
+    </div>
+
   </div>
+
+  <script>
+    // Animate the counter upward slowly — approximating live relocations
+    // Real rate: ~831M and growing. Increments ~1000 per second visually.
+    const baseCount = 831400000;
+    const startTime = Date.now();
+    const ratePerSecond = 1200; // visual increment rate
+
+    function formatNum(n) {
+      return Math.floor(n).toLocaleString('en-US');
+    }
+
+    function updateCounter() {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const current = baseCount + (elapsed * ratePerSecond);
+      document.getElementById('counter').textContent = formatNum(current);
+      requestAnimationFrame(updateCounter);
+    }
+
+    updateCounter();
+  </script>
+
 </body>
 </html>
