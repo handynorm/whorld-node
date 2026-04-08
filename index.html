@@ -346,7 +346,46 @@
     letter-spacing: 0.08em;
   }
 
-  /* Plant a spore */
+  #ocean-content {
+    margin-bottom: 2.5rem;
+    min-height: 200px;
+  }
+
+  .view-fade-in {
+    animation: fadeContent 0.4s ease forwards;
+  }
+
+  @keyframes fadeContent {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .back-link {
+    text-align: center;
+    margin-top: 0.8rem;
+  }
+
+  .back-link a {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: rgba(0, 255, 204, 0.3);
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+
+  .back-link a:hover {
+    color: var(--accent);
+  }
+
+  /* Empirical result — shown below results or principles */
+  .result-block {
+    margin-bottom: 2.5rem;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(0, 136, 255, 0.15);
+    background: rgba(0, 136, 255, 0.03);
+  }
   .plant-section {
     margin-bottom: 2.5rem;
     text-align: left;
@@ -553,7 +592,7 @@
   /* Responsive */
   @media (max-width: 500px) {
     .ocean-live {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
     }
     .search-row {
       flex-direction: column;
@@ -580,19 +619,19 @@
     <div class="divider"></div>
 
     <!-- Live ocean stats — fetched from the API -->
-    <div class="ocean-live">
+    <div class="ocean-live" style="grid-template-columns: 1fr 1fr;">
       <div class="ocean-stat">
         <div class="ocean-stat-value" id="spur-count">—</div>
         <div class="ocean-stat-label">spurs circulating</div>
       </div>
       <div class="ocean-stat">
         <div class="ocean-stat-value" id="avg-heat">—</div>
-        <div class="ocean-stat-label">avg heat</div>
+        <div class="ocean-stat-label">median heat</div>
       </div>
-      <div class="ocean-stat">
-        <div class="ocean-stat-value" id="composting">—</div>
-        <div class="ocean-stat-label">composting</div>
-      </div>
+    </div>
+    <div class="ocean-stat" style="margin-bottom: 2rem; padding: 1rem 0.5rem; border: 1px solid rgba(0, 255, 204, 0.08); background: rgba(0, 255, 204, 0.02);">
+      <div class="ocean-stat-value" id="relocations" style="font-size: clamp(1.2rem, 4vw, 1.8rem);">—</div>
+      <div class="ocean-stat-label">physical memory relocations</div>
     </div>
 
     <!-- Status bar -->
@@ -601,26 +640,38 @@
       <span id="status-text">connecting to ocean...</span>
     </div>
 
-    <!-- Three principles -->
-    <div class="principles">
-      <div class="principle">
-        <div class="principle-num">01</div>
-        <div class="principle-text">
-          <strong>Data that moves organizes itself.</strong> Spurs circulate continuously through computer memory — not stored at fixed addresses but physically relocating through DRAM across a distributed fleet. Related data finds each other through thermal affinity. No clustering algorithm. Physics only.
+    <!-- Search the ocean — above principles -->
+    <div class="ocean-search">
+      <div class="section-label">Search the live ocean</div>
+      <div class="search-row">
+        <input type="text" class="search-input" id="search-input" placeholder="kinetic memory, priscilla, fungi doctrine..." autocomplete="off">
+        <button class="search-btn" id="search-btn" onclick="searchOcean()">Search</button>
+      </div>
+    </div>
+
+    <!-- Principles / Results container — principles show by default, results replace on search -->
+    <div id="ocean-content">
+      <div id="principles-view" class="principles">
+        <div class="principle">
+          <div class="principle-num">01</div>
+          <div class="principle-text">
+            <strong>Data that moves organizes itself.</strong> Spurs circulate continuously through computer memory — not stored at fixed addresses but physically relocating through DRAM across a distributed fleet. Related data finds each other through thermal affinity. No clustering algorithm. Physics only.
+          </div>
+        </div>
+        <div class="principle">
+          <div class="principle-num">02</div>
+          <div class="principle-text">
+            <strong>Heat governs findability.</strong> Human attention warms data. Warm data moves slowly — it's findable. Cold data moves fast — it's in deep archive. The thermal landscape is the index. No query planner. No B-tree. The physics builds the index.
+          </div>
+        </div>
+        <div class="principle">
+          <div class="principle-num">03</div>
+          <div class="principle-text">
+            <strong>Dead data wakes up.</strong> COBOL flat files. Microfiche scans. Decommissioned system exports. Archive data that no modern AI can touch. In WHORLD it's not dead — it's cold. Cold means fast. Fast means circulating. Circulating means finding relationships nobody programmed.
+          </div>
         </div>
       </div>
-      <div class="principle">
-        <div class="principle-num">02</div>
-        <div class="principle-text">
-          <strong>Heat governs findability.</strong> Human attention warms data. Warm data moves slowly — it's findable. Cold data moves fast — it's in deep archive. The thermal landscape is the index. No query planner. No B-tree. The physics builds the index.
-        </div>
-      </div>
-      <div class="principle">
-        <div class="principle-num">03</div>
-        <div class="principle-text">
-          <strong>Dead data wakes up.</strong> COBOL flat files. Microfiche scans. Decommissioned system exports. Archive data that no modern AI can touch. In WHORLD it's not dead — it's cold. Cold means fast. Fast means circulating. Circulating means finding relationships nobody programmed.
-        </div>
-      </div>
+      <div id="results-view" class="search-results" style="display:none;"></div>
     </div>
 
     <!-- Empirical result -->
@@ -632,16 +683,6 @@
         Data self-organizes into semantically coherent thermal bands through heat and motion alone.<br>
         No clustering algorithm present.
       </div>
-    </div>
-
-    <!-- Search the ocean -->
-    <div class="ocean-search">
-      <div class="section-label">Search the live ocean</div>
-      <div class="search-row">
-        <input type="text" class="search-input" id="search-input" placeholder="kinetic memory, priscilla, fungi doctrine..." autocomplete="off">
-        <button class="search-btn" id="search-btn" onclick="searchOcean()">Search</button>
-      </div>
-      <div class="search-results" id="search-results"></div>
     </div>
 
     <!-- Plant a spore -->
@@ -678,7 +719,8 @@
     <div class="contact-block">
       <div class="contact-label">Contact</div>
       <div class="contact-line">Norman Carley — Founder &amp; Inventor</div>
-      <div class="contact-line">Jennifer Raiser — Business &amp; Investor Relations</div>
+      <div class="contact-line">Jennifer Raiser — Business Partner</div>
+      <div class="contact-line">Andrea Taxman — Business &amp; Investor Relations</div>
       <div class="contact-line">Patent Pending — USPTO 64/013,719 — Seven Provisionals</div>
       <div class="contact-line" style="margin-top:0.6rem;">
         <a href="mailto:norm@whorld.ai">norm@whorld.ai</a>
@@ -686,13 +728,35 @@
     </div>
 
     <div class="footer">
-      Morrison &amp; Foerster LLP · Patent Prosecution &amp; Entity Formation · Confidential
+      WHORLD Public Benefit Corporation · Oakland, California
     </div>
 
   </div>
 
   <script>
     const API = '/api/ocean';
+
+    // ─── Relocation counter state ───
+    let lastRelocations = 0;
+    let prevRelocations = 0;
+    let lastPollTime = 0;
+    let relocRate = 0; // relocations per second, observed
+    let displayRelocations = 0;
+
+    function formatNum(n) {
+      return Math.floor(n).toLocaleString('en-US');
+    }
+
+    // Animate the relocation counter between polls
+    function tickRelocations() {
+      if (relocRate > 0 && lastPollTime > 0) {
+        const elapsed = (Date.now() - lastPollTime) / 1000;
+        displayRelocations = lastRelocations + (elapsed * relocRate);
+        document.getElementById('relocations').textContent = formatNum(displayRelocations);
+      }
+      requestAnimationFrame(tickRelocations);
+    }
+    tickRelocations();
 
     // ─── Live ocean status ───
     async function fetchStatus() {
@@ -707,12 +771,25 @@
         const median = data.heat?.median ?? 0;
         document.getElementById('avg-heat').textContent = median.toFixed(3);
 
-        const comp = data.phase_distribution?.composting ?? 0;
-        document.getElementById('composting').textContent = comp.toString();
+        // Calculate relocation rate from successive polls
+        const now = Date.now();
+        const currentReloc = data.total_moves || 0;
+        if (prevRelocations > 0 && lastPollTime > 0) {
+          const dt = (now - lastPollTime) / 1000;
+          if (dt > 0) {
+            relocRate = (currentReloc - prevRelocations) / dt;
+          }
+        }
+        prevRelocations = lastRelocations;
+        lastRelocations = currentReloc;
+        lastPollTime = now;
+        displayRelocations = currentReloc;
+
+        document.getElementById('relocations').textContent = formatNum(currentReloc);
 
         document.getElementById('status-dot').style.background = 'var(--accent)';
         document.getElementById('status-text').textContent =
-          `Ocean active — ${data.spur_count} spurs · ${Math.floor(data.total_moves).toLocaleString()} relocations`;
+          `Ocean active — ${data.spur_count} spurs · Oakland · Sebastopol · San Francisco`;
       } catch (e) {
         document.getElementById('status-dot').style.background = 'var(--warm)';
         document.getElementById('status-text').textContent = 'Ocean unreachable';
@@ -723,11 +800,28 @@
     setInterval(fetchStatus, 15000);
 
     // ─── Search ───
+    function showResults() {
+      document.getElementById('principles-view').style.display = 'none';
+      const rv = document.getElementById('results-view');
+      rv.style.display = 'block';
+      rv.classList.add('view-fade-in');
+    }
+
+    function showPrinciples() {
+      document.getElementById('results-view').style.display = 'none';
+      document.getElementById('results-view').classList.remove('view-fade-in');
+      const pv = document.getElementById('principles-view');
+      pv.style.display = '';
+      pv.classList.add('view-fade-in');
+      setTimeout(() => pv.classList.remove('view-fade-in'), 500);
+    }
+
     async function searchOcean() {
       const q = document.getElementById('search-input').value.trim();
       if (!q) return;
 
-      const results = document.getElementById('search-results');
+      const results = document.getElementById('results-view');
+      showResults();
       results.innerHTML = '<div class="search-status">searching the ocean...</div>';
 
       try {
@@ -735,17 +829,17 @@
         const d = await r.json();
 
         if (!d.data || d.data.length === 0) {
-          results.innerHTML = '<div class="search-status">no spurs found for "' + q + '"</div>';
+          results.innerHTML = '<div class="search-status">no spurs found for "' + q + '"</div>' +
+            '<div class="back-link"><a onclick="showPrinciples()">back to principles</a></div>';
           return;
         }
 
         const spurs = d.data.slice(0, 12);
-        results.innerHTML = spurs.map((s, i) => {
+        let html = spurs.map((s, i) => {
           const heat = s.heat ?? 0;
           const heatClass = heat > 0.7 ? 'heat-hot' : heat > 0.4 ? 'heat-warm' : heat > 0.15 ? 'heat-cool' : 'heat-cold';
 
           let content = s.content || '';
-          // Don't show base64 photo fragments
           if (content.match(/^[A-Za-z0-9+/=]{40,}/)) {
             content = '[photo fragment — binary data circulating]';
           }
@@ -761,8 +855,12 @@
             </div>
           </div>`;
         }).join('');
+
+        html += '<div class="back-link"><a onclick="showPrinciples()">back to principles</a></div>';
+        results.innerHTML = html;
       } catch (e) {
-        results.innerHTML = '<div class="search-status">ocean unreachable</div>';
+        results.innerHTML = '<div class="search-status">ocean unreachable</div>' +
+          '<div class="back-link"><a onclick="showPrinciples()">back to principles</a></div>';
       }
     }
 
@@ -799,7 +897,6 @@
           response.innerHTML = '<span class="plant-success">Your spore is now circulating across 8 nodes in 3 cities.<br>It entered the ocean at heat 0.30. It will cool unless someone touches it.</span>';
           document.getElementById('plant-message').value = '';
           document.getElementById('plant-name').value = '';
-          // Refresh status to show new spur count
           setTimeout(fetchStatus, 2000);
         } else {
           response.innerHTML = `<span class="plant-error">${d.error || 'injection failed'}</span>`;
