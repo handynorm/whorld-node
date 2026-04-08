@@ -18,6 +18,11 @@ function checkPlantRate(ip) {
 }
 
 export default async function handler(req, res) {
+    const OCEAN_OPEN = process.env.OCEAN_OPEN !== "false";
+    if (!OCEAN_OPEN) {
+        return res.status(503).json({ ok: false, error: "ocean offline" });
+    }
+
     // CORS
     res.setHeader("Access-Control-Allow-Origin", "*");
     if (req.method === "OPTIONS") {
