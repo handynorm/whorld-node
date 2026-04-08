@@ -817,6 +817,7 @@
     }
 
     async function searchOcean() {
+      document.getElementById('results-view').innerHTML = '<div class="search-status">ocean is resting — check back soon</div>'; document.getElementById('principles-view').style.display = 'none'; document.getElementById('results-view').style.display = 'block'; return;
       const q = document.getElementById('search-input').value.trim();
       if (!q) return;
 
@@ -871,6 +872,7 @@
 
     // ─── Plant a spore ───
     async function plantSpore() {
+      document.getElementById('plant-response').innerHTML = '<span class="plant-error">planting is paused — check back soon</span>'; return;
       const message = document.getElementById('plant-message').value.trim();
       const name = document.getElementById('plant-name').value.trim();
       const btn = document.getElementById('plant-btn');
