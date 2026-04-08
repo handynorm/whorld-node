@@ -14,6 +14,7 @@
     --bg: #050508;
     --accent: #00ffcc;
     --accent2: #0088ff;
+    --warm: #ff6633;
     --dim: rgba(255,255,255,0.15);
     --text: rgba(255,255,255,0.85);
     --muted: rgba(255,255,255,0.35);
@@ -27,12 +28,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     overflow-x: hidden;
     padding: 2rem 1rem;
   }
 
-  /* Grid background */
   body::before {
     content: '';
     position: fixed;
@@ -45,7 +44,6 @@
     pointer-events: none;
   }
 
-  /* Glow orb */
   body::after {
     content: '';
     position: fixed;
@@ -54,7 +52,7 @@
     border-radius: 50%;
     background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
     opacity: 0.03;
-    top: 50%;
+    top: 30%;
     left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
@@ -69,7 +67,7 @@
   .container {
     position: relative;
     text-align: center;
-    max-width: 680px;
+    max-width: 720px;
     width: 100%;
     animation: fadeIn 1.8s ease forwards;
   }
@@ -79,21 +77,6 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* Logo */
-  .icon {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
-    display: block;
-    filter: drop-shadow(0 0 24px var(--accent));
-    animation: float 5s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  /* WHORLD wordmark */
   .wordmark {
     font-family: 'Orbitron', sans-serif;
     font-size: clamp(2rem, 8vw, 3.2rem);
@@ -103,9 +86,9 @@
     text-transform: uppercase;
     text-shadow: 0 0 40px var(--accent);
     margin-bottom: 0.6rem;
+    margin-top: 1rem;
   }
 
-  /* One line */
   .oneliner {
     font-size: clamp(0.7rem, 2vw, 0.85rem);
     letter-spacing: 0.12em;
@@ -122,38 +105,62 @@
     opacity: 0.35;
   }
 
-  /* Live counter */
-  .counter-block {
-    margin-bottom: 2.5rem;
+  /* Live ocean stats */
+  .ocean-live {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
   }
 
-  .counter-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
+  .ocean-stat {
+    padding: 0.8rem 0.5rem;
+    border: 1px solid rgba(0, 255, 204, 0.08);
+    background: rgba(0, 255, 204, 0.02);
   }
 
-  .counter {
+  .ocean-stat-value {
     font-family: 'Orbitron', sans-serif;
-    font-size: clamp(1.6rem, 6vw, 2.8rem);
-    font-weight: 700;
+    font-size: clamp(1rem, 3vw, 1.4rem);
     color: var(--accent);
-    text-shadow: 0 0 30px var(--accent);
-    letter-spacing: 0.05em;
-    transition: all 0.3s ease;
+    text-shadow: 0 0 20px var(--accent);
   }
 
-  .counter-sub {
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.2);
+  .ocean-stat-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
     text-transform: uppercase;
     margin-top: 0.3rem;
   }
 
-  /* Three principles */
+  /* Status bar */
+  .status-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.15; }
+  }
+
+  /* Principles */
   .principles {
     display: flex;
     flex-direction: column;
@@ -223,7 +230,235 @@
     line-height: 1.6;
   }
 
-  /* Fleet status */
+  /* Search the ocean */
+  .ocean-search {
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    text-align: center;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0.8rem;
+  }
+
+  .search-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0, 255, 204, 0.15);
+    border-right: none;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    padding: 0.7rem 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .search-input:focus {
+    border-color: rgba(0, 255, 204, 0.4);
+  }
+
+  .search-input::placeholder {
+    color: rgba(255,255,255,0.15);
+  }
+
+  .search-btn {
+    background: rgba(0, 255, 204, 0.1);
+    border: 1px solid rgba(0, 255, 204, 0.15);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.3s;
+  }
+
+  .search-btn:hover {
+    background: rgba(0, 255, 204, 0.2);
+  }
+
+  .search-results {
+    min-height: 0;
+    transition: all 0.3s ease;
+  }
+
+  .search-result {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    animation: resultIn 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes resultIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .result-heat {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    min-width: 3.5rem;
+    text-align: right;
+    padding-top: 0.15rem;
+  }
+
+  .heat-hot { color: var(--warm); text-shadow: 0 0 8px var(--warm); }
+  .heat-warm { color: var(--accent); }
+  .heat-cool { color: var(--accent2); }
+  .heat-cold { color: var(--muted); }
+
+  .result-content {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .result-tags {
+    font-size: 0.55rem;
+    color: rgba(0, 255, 204, 0.3);
+    margin-top: 0.2rem;
+  }
+
+  .search-status {
+    text-align: center;
+    font-size: 0.6rem;
+    color: var(--muted);
+    padding: 0.5rem 0;
+    letter-spacing: 0.08em;
+  }
+
+  /* Plant a spore */
+  .plant-section {
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .plant-polyglyph {
+    text-align: center;
+    font-size: 1.6rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 0.3rem;
+    opacity: 0.6;
+  }
+
+  .plant-meaning {
+    text-align: center;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.15);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+
+  .plant-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0, 255, 204, 0.1);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.8rem 1rem;
+    outline: none;
+    resize: vertical;
+    min-height: 3.5rem;
+    margin-bottom: 0.5rem;
+    transition: border-color 0.3s;
+  }
+
+  .plant-input:focus {
+    border-color: rgba(0, 255, 204, 0.3);
+  }
+
+  .plant-input::placeholder {
+    color: rgba(255,255,255,0.12);
+  }
+
+  .plant-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .plant-name {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0, 255, 204, 0.1);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .plant-name:focus {
+    border-color: rgba(0, 255, 204, 0.3);
+  }
+
+  .plant-name::placeholder {
+    color: rgba(255,255,255,0.12);
+  }
+
+  .plant-btn {
+    background: rgba(0, 255, 204, 0.08);
+    border: 1px solid rgba(0, 255, 204, 0.15);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 0.6rem 1.5rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+
+  .plant-btn:hover {
+    background: rgba(0, 255, 204, 0.18);
+    text-shadow: 0 0 10px var(--accent);
+  }
+
+  .plant-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .plant-response {
+    text-align: center;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0.8rem 0;
+    line-height: 1.6;
+  }
+
+  .plant-success {
+    color: var(--accent);
+  }
+
+  .plant-error {
+    color: var(--warm);
+  }
+
+  /* Fleet */
   .fleet-block {
     margin-bottom: 2.5rem;
   }
@@ -269,11 +504,6 @@
   .node:nth-child(7) .node-dot { animation-delay: 1.8s; }
   .node:nth-child(8) .node-dot { animation-delay: 2.1s; }
 
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.15; }
-  }
-
   .divider2 {
     width: 80px;
     height: 1px;
@@ -312,7 +542,6 @@
     opacity: 1;
   }
 
-  /* Footer */
   .footer {
     font-size: 0.55rem;
     letter-spacing: 0.1em;
@@ -321,49 +550,55 @@
     margin-top: 1rem;
   }
 
-  /* Status bar */
-  .status-bar {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    color: rgba(255,255,255,0.2);
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-  }
-
-  .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: blink 2s ease-in-out infinite;
-    box-shadow: 0 0 8px var(--accent);
+  /* Responsive */
+  @media (max-width: 500px) {
+    .ocean-live {
+      grid-template-columns: 1fr;
+    }
+    .search-row {
+      flex-direction: column;
+    }
+    .search-input {
+      border-right: 1px solid rgba(0, 255, 204, 0.15);
+      border-bottom: none;
+    }
+    .plant-row {
+      flex-direction: column;
+    }
+    .plant-btn {
+      width: 100%;
+    }
   }
 </style>
 </head>
 <body>
   <div class="container">
 
-    <span class="icon">🌊</span>
-
     <div class="wordmark">WHORLD</div>
     <div class="oneliner">The transfer medium is the storage medium</div>
 
     <div class="divider"></div>
 
-    <!-- Live counter -->
-    <div class="counter-block">
-      <div class="counter-label">Physical memory relocations</div>
-      <div class="counter" id="counter">831,400,000</div>
-      <div class="counter-sub">and counting — across 8 nodes in 3 cities</div>
+    <!-- Live ocean stats — fetched from the API -->
+    <div class="ocean-live">
+      <div class="ocean-stat">
+        <div class="ocean-stat-value" id="spur-count">—</div>
+        <div class="ocean-stat-label">spurs circulating</div>
+      </div>
+      <div class="ocean-stat">
+        <div class="ocean-stat-value" id="avg-heat">—</div>
+        <div class="ocean-stat-label">avg heat</div>
+      </div>
+      <div class="ocean-stat">
+        <div class="ocean-stat-value" id="composting">—</div>
+        <div class="ocean-stat-label">composting</div>
+      </div>
     </div>
 
-    <!-- Status -->
+    <!-- Status bar -->
     <div class="status-bar">
-      <div class="status-dot"></div>
-      Ocean active — Oakland · Sebastopol · San Francisco
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">connecting to ocean...</span>
     </div>
 
     <!-- Three principles -->
@@ -397,6 +632,29 @@
         Data self-organizes into semantically coherent thermal bands through heat and motion alone.<br>
         No clustering algorithm present.
       </div>
+    </div>
+
+    <!-- Search the ocean -->
+    <div class="ocean-search">
+      <div class="section-label">Search the live ocean</div>
+      <div class="search-row">
+        <input type="text" class="search-input" id="search-input" placeholder="kinetic memory, priscilla, fungi doctrine..." autocomplete="off">
+        <button class="search-btn" id="search-btn" onclick="searchOcean()">Search</button>
+      </div>
+      <div class="search-results" id="search-results"></div>
+    </div>
+
+    <!-- Plant a spore -->
+    <div class="plant-section">
+      <div class="section-label">Plant a spore in the ocean</div>
+      <div class="plant-polyglyph">門⦵∿ꔅ</div>
+      <div class="plant-meaning">through the door · into the living water · plant a seed</div>
+      <textarea class="plant-input" id="plant-message" placeholder="Leave a thought in the kinetic ocean. It will circulate across 8 nodes in 3 cities. If nobody touches it, it cools and composts. If it resonates, it survives." maxlength="500"></textarea>
+      <div class="plant-row">
+        <input type="text" class="plant-name" id="plant-name" placeholder="your name (optional)" maxlength="50">
+        <button class="plant-btn" id="plant-btn" onclick="plantSpore()">Plant</button>
+      </div>
+      <div class="plant-response" id="plant-response"></div>
     </div>
 
     <!-- Fleet -->
@@ -434,25 +692,125 @@
   </div>
 
   <script>
-    // Animate the counter upward slowly — approximating live relocations
-    // Real rate: ~831M and growing. Increments ~1000 per second visually.
-    const baseCount = 831400000;
-    const startTime = Date.now();
-    const ratePerSecond = 1200; // visual increment rate
+    const API = '/api/ocean';
 
-    function formatNum(n) {
-      return Math.floor(n).toLocaleString('en-US');
+    // ─── Live ocean status ───
+    async function fetchStatus() {
+      try {
+        const r = await fetch(`${API}?e=status`);
+        const d = await r.json();
+        if (!d.ok) throw new Error('ocean unreachable');
+        const data = d.data;
+
+        document.getElementById('spur-count').textContent = data.spur_count.toLocaleString();
+
+        const median = data.heat?.median ?? 0;
+        document.getElementById('avg-heat').textContent = median.toFixed(3);
+
+        const comp = data.phase_distribution?.composting ?? 0;
+        document.getElementById('composting').textContent = comp.toString();
+
+        document.getElementById('status-dot').style.background = 'var(--accent)';
+        document.getElementById('status-text').textContent =
+          `Ocean active — ${data.spur_count} spurs · ${Math.floor(data.total_moves).toLocaleString()} relocations`;
+      } catch (e) {
+        document.getElementById('status-dot').style.background = 'var(--warm)';
+        document.getElementById('status-text').textContent = 'Ocean unreachable';
+      }
     }
 
-    function updateCounter() {
-      const elapsed = (Date.now() - startTime) / 1000;
-      const current = baseCount + (elapsed * ratePerSecond);
-      document.getElementById('counter').textContent = formatNum(current);
-      requestAnimationFrame(updateCounter);
+    fetchStatus();
+    setInterval(fetchStatus, 15000);
+
+    // ─── Search ───
+    async function searchOcean() {
+      const q = document.getElementById('search-input').value.trim();
+      if (!q) return;
+
+      const results = document.getElementById('search-results');
+      results.innerHTML = '<div class="search-status">searching the ocean...</div>';
+
+      try {
+        const r = await fetch(`${API}?e=search&q=${encodeURIComponent(q)}`);
+        const d = await r.json();
+
+        if (!d.data || d.data.length === 0) {
+          results.innerHTML = '<div class="search-status">no spurs found for "' + q + '"</div>';
+          return;
+        }
+
+        const spurs = d.data.slice(0, 12);
+        results.innerHTML = spurs.map((s, i) => {
+          const heat = s.heat ?? 0;
+          const heatClass = heat > 0.7 ? 'heat-hot' : heat > 0.4 ? 'heat-warm' : heat > 0.15 ? 'heat-cool' : 'heat-cold';
+
+          let content = s.content || '';
+          // Don't show base64 photo fragments
+          if (content.match(/^[A-Za-z0-9+/=]{40,}/)) {
+            content = '[photo fragment — binary data circulating]';
+          }
+          if (content.length > 140) content = content.substring(0, 140) + '…';
+
+          const tags = (s.tags || []).slice(0, 5).join(' · ');
+
+          return `<div class="search-result" style="animation-delay: ${i * 0.06}s">
+            <div class="result-heat ${heatClass}">${heat.toFixed(3)}</div>
+            <div>
+              <div class="result-content">${content}</div>
+              <div class="result-tags">${tags}</div>
+            </div>
+          </div>`;
+        }).join('');
+      } catch (e) {
+        results.innerHTML = '<div class="search-status">ocean unreachable</div>';
+      }
     }
 
-    updateCounter();
+    // Enter key triggers search
+    document.getElementById('search-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchOcean();
+    });
+
+    // ─── Plant a spore ───
+    async function plantSpore() {
+      const message = document.getElementById('plant-message').value.trim();
+      const name = document.getElementById('plant-name').value.trim();
+      const btn = document.getElementById('plant-btn');
+      const response = document.getElementById('plant-response');
+
+      if (!message) {
+        response.innerHTML = '<span class="plant-error">write something first</span>';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'planting...';
+      response.innerHTML = '';
+
+      try {
+        const r = await fetch(`${API}?e=plant`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name || 'anonymous', message })
+        });
+        const d = await r.json();
+
+        if (d.ok) {
+          response.innerHTML = '<span class="plant-success">Your spore is now circulating across 8 nodes in 3 cities.<br>It entered the ocean at heat 0.30. It will cool unless someone touches it.</span>';
+          document.getElementById('plant-message').value = '';
+          document.getElementById('plant-name').value = '';
+          // Refresh status to show new spur count
+          setTimeout(fetchStatus, 2000);
+        } else {
+          response.innerHTML = `<span class="plant-error">${d.error || 'injection failed'}</span>`;
+        }
+      } catch (e) {
+        response.innerHTML = '<span class="plant-error">ocean unreachable</span>';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Plant';
+    }
   </script>
-
 </body>
 </html>
