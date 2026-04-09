@@ -693,6 +693,7 @@
       <textarea class="plant-input" id="plant-message" placeholder="Leave a thought in the kinetic ocean. It will circulate across 8 nodes in 3 cities. If nobody touches it, it cools and composts. If it resonates, it survives." maxlength="500"></textarea>
       <div class="plant-row">
         <input type="text" class="plant-name" id="plant-name" placeholder="your name (optional)" maxlength="50">
+        <input type="text" name="website" id="plant-honeypot" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
         <button class="plant-btn" id="plant-btn" onclick="plantSpore()">Plant</button>
       </div>
       <div class="plant-response" id="plant-response"></div>
@@ -889,7 +890,7 @@
         const r = await fetch(`${API}?e=plant`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name || 'anonymous', message })
+          body: JSON.stringify({ name: name || 'anonymous', message, website: document.getElementById('plant-honeypot').value })
         });
         const d = await r.json();
 

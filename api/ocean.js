@@ -35,6 +35,31 @@ export default async function handler(req, res) {
 
     // POST: e=plant — visitor spore injection
     if (e === "plant" && req.method === "POST") {
+        const body = req.body || {};
+        const msg = (body.message || "").toLowerCase();
+        const name = (body.name || "").toLowerCase();
+
+        // 1. URL detection — no links in the ocean
+        const hasUrl = /https?:\/\/|www\.|\.com|\.org|\.net|\.io|\.xyz|\.bet|\.casino/i.test(msg + name);
+
+        // 2. Honeypot — hidden field that humans never fill
+        const honeyFilled = body.website && body.website.length > 0;
+
+        // 3. Known spam patterns
+        const SPAM_WORDS = ["casino", "vegas", "crypto", "forex", "cbd", "viagra", "onlyfans", "telegram", "whatsapp", "discount", "free money", "click here"];
+        const hasSpamWords = SPAM_WORDS.some(w => msg.includes(w) || name.includes(w));
+
+        // Silent reject — 200 OK so bot thinks it worked
+        if (hasUrl || honeyFilled || hasSpamWords) {
+            return res.status(200).json({ ok: true, sais: "whl:visitor:0000:0000:0000" });
+        }
+
+        // Too short
+        if ((body.message || "").trim().length < 10) {
+            return res.status(400).json({ ok: false, error: "say more — at least 10 characters" });
+        }
+
+        // === PLANTING PAUSED — remove this line to reopen ===
         return res.status(503).json({ ok: false, error: "planting paused" });
         const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
         if (!checkPlantRate(ip)) {
