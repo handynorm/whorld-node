@@ -35,6 +35,7 @@ export default async function handler(req, res) {
 
     // POST: e=plant — visitor spore injection
     if (e === "plant" && req.method === "POST") {
+        return res.status(503).json({ ok: false, error: "planting paused" });
         const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
         if (!checkPlantRate(ip)) {
             return res.status(429).json({ ok: false, error: "rate limit — try again in a minute" });
