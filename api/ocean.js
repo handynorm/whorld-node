@@ -66,14 +66,14 @@ export default async function handler(req, res) {
             return res.status(429).json({ ok: false, error: "rate limit — try again in a minute" });
         }
 
-        const { name, message } = req.body || {};
+        const { name: plantName, message } = req.body || {};
         if (!message || typeof message !== "string" || message.trim().length === 0) {
             return res.status(400).json({ ok: false, error: "message is required (1-500 characters)" });
         }
         if (message.length > 500) {
             return res.status(400).json({ ok: false, error: "message too long (500 character max)" });
         }
-        const cleanName = (name && typeof name === "string") ? name.slice(0, 50).trim() : "";
+        const cleanName = (plantName && typeof plantName === "string") ? plantName.slice(0, 50).trim() : "";
         const visitorName = cleanName || "anonymous";
 
         const spur = {
