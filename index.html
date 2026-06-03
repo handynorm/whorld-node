@@ -302,6 +302,16 @@
     border-bottom: 1px solid rgba(255,255,255,0.04);
     animation: resultIn 0.3s ease forwards;
     opacity: 0;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .search-result:hover {
+    background: rgba(0, 255, 204, 0.04);
+  }
+
+  .search-result.touched {
+    border-left: 2px solid var(--warm);
   }
 
   @keyframes resultIn {
@@ -336,6 +346,18 @@
     font-size: 0.55rem;
     color: rgba(0, 255, 204, 0.3);
     margin-top: 0.2rem;
+  }
+
+  .result-zing {
+    font-size: 0.5rem;
+    color: var(--warm);
+    margin-top: 0.15rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .result-zing.visible {
+    opacity: 1;
   }
 
   .search-status {
@@ -379,13 +401,6 @@
     color: var(--accent);
   }
 
-  /* Empirical result — shown below results or principles */
-  .result-block {
-    margin-bottom: 2.5rem;
-    padding: 1.2rem 1.5rem;
-    border: 1px solid rgba(0, 136, 255, 0.15);
-    background: rgba(0, 136, 255, 0.03);
-  }
   .plant-section {
     margin-bottom: 2.5rem;
     text-align: left;
@@ -741,14 +756,13 @@
     let lastRelocations = 0;
     let prevRelocations = 0;
     let lastPollTime = 0;
-    let relocRate = 0; // relocations per second, observed
+    let relocRate = 0;
     let displayRelocations = 0;
 
     function formatNum(n) {
       return Math.floor(n).toLocaleString('en-US');
     }
 
-    // Animate the relocation counter between polls
     function tickRelocations() {
       if (relocRate > 0 && lastPollTime > 0) {
         const elapsed = (Date.now() - lastPollTime) / 1000;
@@ -772,7 +786,6 @@
         const median = data.heat?.median ?? 0;
         document.getElementById('avg-heat').textContent = median.toFixed(3);
 
-        // Calculate relocation rate from successive polls
         const now = Date.now();
         const currentReloc = data.total_moves || 0;
         if (prevRelocations > 0 && lastPollTime > 0) {
@@ -799,6 +812,46 @@
 
     fetchStatus();
     setInterval(fetchStatus, 15000);
+
+    // ─── Proof of Work ───
+    // Solves SHA-256(challenge + nonce) starting with "0000" (2 zero bytes)
+    // Takes ~1-3 seconds on a normal browser. A bot needs this per request.
+    async function solveProofOfWork() {
+      const challenge = Date.now().toString(16);
+      const encoder = new TextEncoder();
+      for (let nonce = 0; nonce < 10000000; nonce++) {
+        const data = encoder.encode(challenge + nonce.toString());
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        const bytes = new Uint8Array(hash);
+        if (bytes[0] === 0 && bytes[1] === 0) {
+          return { challenge, nonce: nonce.toString() };
+        }
+      }
+      return null; // should never happen
+    }
+
+    // ─── Search-as-Zing: touch a spur when human clicks it ───
+    async function touchSpur(sais, el) {
+      // Don't touch the same spur twice in one session
+      if (el.classList.contains('touched')) return;
+      el.classList.add('touched');
+
+      // Show zing feedback
+      const zingEl = el.querySelector('.result-zing');
+      if (zingEl) {
+        zingEl.classList.add('visible');
+      }
+
+      try {
+        await fetch(`${API}?e=touch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sais })
+        });
+      } catch (e) {
+        // Silent — the zing is best-effort
+      }
+    }
 
     // ─── Search ───
     function showResults() {
@@ -847,12 +900,15 @@
           if (content.length > 140) content = content.substring(0, 140) + '…';
 
           const tags = (s.tags || []).slice(0, 5).join(' · ');
+          const sais = s.sais || '';
+          const safeContent = content.replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-          return `<div class="search-result" style="animation-delay: ${i * 0.06}s">
+          return `<div class="search-result" style="animation-delay: ${i * 0.06}s" onclick="touchSpur('${sais}', this)" title="click to warm this spur">
             <div class="result-heat ${heatClass}">${heat.toFixed(3)}</div>
             <div>
-              <div class="result-content">${content}</div>
+              <div class="result-content">${safeContent}</div>
               <div class="result-tags">${tags}</div>
+              <div class="result-zing">✦ warmed by your attention</div>
             </div>
           </div>`;
         }).join('');
@@ -865,7 +921,6 @@
       }
     }
 
-    // Enter key triggers search
     document.getElementById('search-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') searchOcean();
     });
@@ -882,7 +937,24 @@
         return;
       }
 
+      if (message.length < 10) {
+        response.innerHTML = '<span class="plant-error">say more — at least 10 characters</span>';
+        return;
+      }
+
       btn.disabled = true;
+      btn.textContent = 'proving...';
+      response.innerHTML = '<span style="color: var(--muted);">solving proof of work — your silicon is earning passage...</span>';
+
+      // Solve proof of work before submitting
+      const pow = await solveProofOfWork();
+      if (!pow) {
+        response.innerHTML = '<span class="plant-error">proof of work failed — try again</span>';
+        btn.disabled = false;
+        btn.textContent = 'Plant';
+        return;
+      }
+
       btn.textContent = 'planting...';
       response.innerHTML = '';
 
@@ -890,7 +962,13 @@
         const r = await fetch(`${API}?e=plant`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name || 'anonymous', message, website: document.getElementById('plant-honeypot').value })
+          body: JSON.stringify({
+            name: name || 'anonymous',
+            message,
+            website: document.getElementById('plant-honeypot').value,
+            pow_challenge: pow.challenge,
+            pow_nonce: pow.nonce
+          })
         });
         const d = await r.json();
 
