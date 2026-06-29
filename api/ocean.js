@@ -226,13 +226,13 @@ export default async function handler(req, res) {
         if (e === "search" && data && Array.isArray(data.data)) {
             const zHeaders = { "Content-Type": "application/json" };
             if (WHORLD_SECRET) zHeaders["x-whorld-auth"] = WHORLD_SECRET;
-            const topHits = data.data.slice(0, 3).filter(s => s && typeof s.sais === "string" && (s.sais.startsWith("whl:") || s.sais.startsWith("res:")));
+            const topHits = data.data.filter(s => s && typeof s.sais === "string" && (s.sais.startsWith("whl:") || s.sais.startsWith("res:"))).slice(0, 1);
             for (const hit of topHits) {
                 fetch(`${PELAGO_URL}/touch`, {
                     method: "POST",
                     headers: zHeaders,
                     body: JSON.stringify({ sais: hit.sais }),
-                    signal: AbortSignal.timeout(5000),
+                    signal: AbortSignal.timeout(15000),
                 }).then(async r => { console.log("[net-zing] touch", hit.sais, "status", r.status, await r.text().catch(()=>"")); }).catch(e => { console.log("[net-zing] touch FAILED", hit.sais, String(e)); });
             }
         }
