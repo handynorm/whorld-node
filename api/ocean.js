@@ -233,7 +233,7 @@ export default async function handler(req, res) {
                     headers: zHeaders,
                     body: JSON.stringify({ sais: hit.sais }),
                     signal: AbortSignal.timeout(5000),
-                }).catch(() => {});
+                }).then(async r => { console.log("[net-zing] touch", hit.sais, "status", r.status, await r.text().catch(()=>"")); }).catch(e => { console.log("[net-zing] touch FAILED", hit.sais, String(e)); });
             }
         }
 
