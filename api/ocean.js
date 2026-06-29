@@ -226,7 +226,7 @@ export default async function handler(req, res) {
         if (e === "search" && data && Array.isArray(data.data)) {
             const zHeaders = { "Content-Type": "application/json" };
             if (WHORLD_SECRET) zHeaders["x-whorld-auth"] = WHORLD_SECRET;
-            const topHits = data.data.slice(0, 3).filter(s => s && typeof s.sais === "string" && s.sais.startsWith("whl:"));
+            const topHits = data.data.slice(0, 3).filter(s => s && typeof s.sais === "string" && (s.sais.startsWith("whl:") || s.sais.startsWith("res:")));
             for (const hit of topHits) {
                 fetch(`${PELAGO_URL}/touch`, {
                     method: "POST",
