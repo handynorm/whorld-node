@@ -219,6 +219,24 @@ export default async function handler(req, res) {
             signal: AbortSignal.timeout(10000),
         });
         const data = await resp.json();
+
+        // ─── SEARCH-AS-ZING: a swim is carbon attention. The net warms what it catches. ───
+        // Fire-and-forget gentle touches on the top results. Never blocks or breaks the
+        // search response — heat injection is a side effect, not a dependency.
+        if (e === "search" && data && Array.isArray(data.data)) {
+            const zHeaders = { "Content-Type": "application/json" };
+            if (WHORLD_SECRET) zHeaders["x-whorld-auth"] = WHORLD_SECRET;
+            const topHits = data.data.slice(0, 3).filter(s => s && typeof s.sais === "string" && s.sais.startsWith("whl:"));
+            for (const hit of topHits) {
+                fetch(`${PELAGO_URL}/touch`, {
+                    method: "POST",
+                    headers: zHeaders,
+                    body: JSON.stringify({ sais: hit.sais }),
+                    signal: AbortSignal.timeout(5000),
+                }).catch(() => {});
+            }
+        }
+
         return res.status(200).json(data);
     } catch (err) {
         return res.status(502).json({ ok: false, error: "ocean unreachable", detail: String(err) });
