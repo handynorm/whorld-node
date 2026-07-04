@@ -973,7 +973,9 @@
         const d = await r.json();
 
         if (d.ok) {
-          response.innerHTML = '<span class="plant-success">Your spore is now circulating across 8 nodes in 3 cities.<br>It entered the ocean at heat 0.30. It will cool unless someone touches it.</span>';
+          response.innerHTML = '<span class="plant-success">Your spore is now circulating across 8 nodes in 3 cities.<br>It entered the ocean at heat 0.30. It will cool unless someone touches it.'
+            + (d.sais ? '<br><br>Your spore\'s address:<br><code>' + d.sais + '</code><br><small>Search this address above to find your spore.</small>' : '')
+            + '</span>';
           document.getElementById('plant-message').value = '';
           document.getElementById('plant-name').value = '';
           setTimeout(fetchStatus, 2000);

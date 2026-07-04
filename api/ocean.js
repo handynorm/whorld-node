@@ -149,7 +149,7 @@ export default async function handler(req, res) {
             });
             const data = await resp.json();
             if (data.ok) {
-                return res.status(200).json({ ok: true, message: "Your spore is now circulating" });
+                return res.status(200).json({ ok: true, message: "Your spore is now circulating", sais: data.sais || data.SAIS || null });
             }
             return res.status(502).json({ ok: false, error: "ocean rejected the spore" });
         } catch (err) {
