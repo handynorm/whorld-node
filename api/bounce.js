@@ -132,7 +132,36 @@ export default async function handler(req, res) {
   }
 
   const moves = typeof spore.moves === "number" ? spore.moves : 0;
-  const MAX_HOPS = 13;
+
+  // ⚑ Day 516 — MAX_HOPS WAS CHECKING THE WRONG COUNTER, AND THE WIRE WAS
+  // CLOSED TO THE ENTIRE EXISTING CORPUS BECAUSE OF IT.
+  // It tested `moves`, the DRAM RELOCATION ODOMETER — median spore 506,669,
+  // max 8,050,754. So EVERY spore older than a few seconds tripped MAX_HOPS on
+  // arrival and was turned straight back to Pelago. Only fresh probes ever
+  // routed anywhere. Visible in wire_transit: route_reason "max-hops" on a
+  // res:resident spore whose hop_index was 0 — its FIRST crossing.
+  // ⚑ THE LIMIT WAS NOT TOO STRICT. IT READ A NUMBER UNRELATED TO HOPS.
+  // Ceiling is 3, not 13, DELIBERATELY: this is the first time the existing
+  // 28,000 spores can travel, the rate is unmeasured, and Vercel concurrency
+  // is unknown. Watch the table for a day, then raise it.
+  const MAX_HOPS = 3;
+
+  let priorHops = 0;
+  try {
+    if (sais !== "unknown" && process.env.SUPABASE_URL) {
+      const { createClient: _cc0 } = await import("@supabase/supabase-js");
+      const _sb0 = _cc0(process.env.SUPABASE_URL,
+                        process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { count: _p } = await _sb0.from("wire_transit")
+        .select("id", { count: "exact", head: true }).eq("sais", sais);
+      priorHops = _p || 0;
+    }
+  } catch (e) {
+    // ⚑ FAIL TOWARD HOME. No count means we cannot know how far this has
+    // travelled, so send it to Pelago rather than risk a loop.
+    priorHops = MAX_HOPS;
+    console.error("hop count unavailable:", e.message);
+  }
 
   let forwarded = false;
   // ⚑ Day 516 — HOISTED SO THE TRANSIT LOG CAN SEE THEM. These were declared
@@ -146,8 +175,8 @@ export default async function handler(req, res) {
 
   if (sais !== "unknown") {
     // After MAX_HOPS or if no PELAGO_URL — return to Pelago
-    if (moves >= MAX_HOPS || !PELAGO_URL) {
-      routeReason = (moves >= MAX_HOPS) ? "max-hops" : "no-pelago-url";
+    if (priorHops >= MAX_HOPS || !PELAGO_URL) {
+      routeReason = (priorHops >= MAX_HOPS) ? `max-hops(${priorHops})` : "no-pelago-url";
       try {
         const resp = await fetch(`${PELAGO_URL}/inject`, {
           method: "POST",
@@ -242,9 +271,6 @@ export default async function handler(req, res) {
       const { createClient: _cc } = await import("@supabase/supabase-js");
       const _sb = _cc(process.env.SUPABASE_URL,
                       process.env.SUPABASE_SERVICE_ROLE_KEY);
-      const { count: _prior } = await _sb.from("wire_transit")
-        .select("id", { count: "exact", head: true }).eq("sais", sais);
-      const priorHops = _prior || 0;
       await _sb.from("wire_transit").insert([{
         sais,
         node: NODE_NAME,
