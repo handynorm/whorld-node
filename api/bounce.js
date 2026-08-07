@@ -135,10 +135,19 @@ export default async function handler(req, res) {
   const MAX_HOPS = 13;
 
   let forwarded = false;
+  // ⚑ Day 516 — HOISTED SO THE TRANSIT LOG CAN SEE THEM. These were declared
+  // inside the routing branch, so by the time wire_transit was written at the
+  // return they were out of scope and EVERY ROW SAID route_to:null,
+  // route_reason:"no-route". The log recorded THAT a spore crossed and not
+  // WHERE IT WENT — which is most of the value missing.
+  let nextIdx = null;
+  let nextNode = null;
+  let routeReason = "none";
 
   if (sais !== "unknown") {
     // After MAX_HOPS or if no PELAGO_URL — return to Pelago
     if (moves >= MAX_HOPS || !PELAGO_URL) {
+      routeReason = (moves >= MAX_HOPS) ? "max-hops" : "no-pelago-url";
       try {
         const resp = await fetch(`${PELAGO_URL}/inject`, {
           method: "POST",
@@ -153,8 +162,8 @@ export default async function handler(req, res) {
       }
     } else {
       // Hash route to next node
-      let nextIdx = hashRoute(sais, cy || 0, moves, temperature);
-      let routeReason = "hash";
+      nextIdx = hashRoute(sais, cy || 0, moves, temperature);
+      routeReason = "hash";
       // ⚑ NEVER FORWARD TO YOURSELF. Step to the next slot instead. Without
       // this a self-hash recurses Vercel-to-Vercel until the function is
       // killed — and with moves never incrementing (fixed below) MAX_HOPS
@@ -163,7 +172,7 @@ export default async function handler(req, res) {
         nextIdx = (nextIdx + 1) % ALL_NODES.length;
         routeReason = "self-collision-stepped";
       }
-      const nextNode = ALL_NODES[nextIdx];
+      nextNode = ALL_NODES[nextIdx];
 
       // ⚑ Day 515 — THE URL DECIDES, NOT THE LABEL. This read
       // `type === "pi" || not url` and SHORT-CIRCUITED ON THE TYPE, so giving
@@ -233,19 +242,28 @@ export default async function handler(req, res) {
       const { createClient: _cc } = await import("@supabase/supabase-js");
       const _sb = _cc(process.env.SUPABASE_URL,
                       process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { count: _prior } = await _sb.from("wire_transit")
+        .select("id", { count: "exact", head: true }).eq("sais", sais);
+      const priorHops = _prior || 0;
       await _sb.from("wire_transit").insert([{
         sais,
         node: NODE_NAME,
         came_from: req.headers["x-whorld-from"] || null,
-        route_to: (typeof nextNode !== "undefined" && nextNode) ? nextNode.name : null,
-        route_reason: (typeof nextIdx !== "undefined")
-          ? `hash->${nextIdx}` : "no-route",
+        route_to: nextNode ? nextNode.name : "pelago",
+        route_reason: (nextIdx === null) ? routeReason
+                    : `${routeReason}->${nextIdx}:${nextNode ? nextNode.name : "?"}`,
         forwarded,
         http_status: forwarded ? 200 : null,
-        // ⚑ hop_index is NOT NULL in the schema. moves IS the hop count now
-        // that bounce.js increments it (Day 515) — before that fix the spur
-        // was forwarded UNCHANGED and MAX_HOPS was dead code.
-        hop_index: moves,
+        // ⚑ Day 516 — hop_index IS THE ROW COUNT FOR THIS SAIS, not `moves`.
+        // The first draft wrote moves here and that was FALSE: `moves` is the
+        // DRAM RELOCATION ODOMETER. Measured the same day — the median spore
+        // has 506,669 moves and the maximum is 8,050,754. Nothing has crossed
+        // a trampoline eight million times. Writing that into a column called
+        // hop_index claims something untrue.
+        // ⚑ AND IT MEANS MAX_HOPS=13 CAN NEVER FIRE. It checks `moves`, which
+        // is already half a million on any real spore. Dead code again, for a
+        // different reason than Day 515. The wire needs its own counter.
+        hop_index: priorHops,
         moves,
         // ⚑ the column is `temperature`, not `heat`. Checked against
         // information_schema before shipping — the first draft said heat and
