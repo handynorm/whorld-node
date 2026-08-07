@@ -81,7 +81,17 @@ export default async function handler(req, res) {
   // url.includes(NODE_NAME) would have returned false and the self-collision
   // guard below would never have fired for that site.
   const ALL_NODES = [
-    { type: "pi",    name: "alpha",          url: null },   // 0 — Pi, unreachable from Vercel
+    // ⚑ Day 515 — ALPHA IS REACHABLE NOW. The comment below was true when it
+    // was written and Tailscale Funnel made it false; nobody updated the
+    // table. Every Pi slot being null is why a spore on the wire could only
+    // ever come home to Pelago — there was nowhere else for it to land, and
+    // that is why nine system-state spores emitted tonight confirmed nowhere.
+    // Verified from a sandbox with NO ROUTE INTO THE TAILNET: /inject
+    // returned 200 and the spur was stored kinetically.
+    // NOTE: `tailscale serve` publishes to the TAILNET; `tailscale funnel`
+    // publishes to the INTERNET. Using serve silently took the funnel down
+    // and /search went dark for two minutes. Check from outside, always.
+    { type: "pi", name: "alpha", url: "https://gyre-alpha.tail01ee59.ts.net/inject" },  // 0
     { type: "pi",    name: "beta",           url: null },   // 1
     { type: "pi",    name: "gamma",          url: null },   // 2
     { type: "pi",    name: "delta",          url: null },   // 3
