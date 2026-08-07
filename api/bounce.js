@@ -165,7 +165,11 @@ export default async function handler(req, res) {
       }
       const nextNode = ALL_NODES[nextIdx];
 
-      if (nextNode.type === "pi" || !nextNode.url) {
+      // ⚑ Day 515 — THE URL DECIDES, NOT THE LABEL. This read
+      // `type === "pi" || not url` and SHORT-CIRCUITED ON THE TYPE, so giving
+      // alpha a real Funnel URL changed nothing — it still went to Pelago.
+      // A node is unreachable if it HAS NO URL. That is the only test.
+      if (!nextNode.url) {
         // Pi nodes not reachable from Vercel — return to Pelago as gateway
         try {
           const resp = await fetch(`${PELAGO_URL}/inject`, {
