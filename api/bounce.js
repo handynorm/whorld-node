@@ -92,10 +92,10 @@ export default async function handler(req, res) {
     // publishes to the INTERNET. Using serve silently took the funnel down
     // and /search went dark for two minutes. Check from outside, always.
     { type: "pi", name: "alpha", url: "https://gyre-alpha.tail01ee59.ts.net/inject" },  // 0
-    { type: "pi",    name: "beta",           url: null },   // 1
-    { type: "pi",    name: "gamma",          url: null },   // 2
-    { type: "pi",    name: "delta",          url: null },   // 3
-    { type: "pi",    name: "epsilon",        url: null },   // 4
+    { type: "pi", name: "beta", url: "https://gyre-beta.tail01ee59.ts.net/inject" },   // 1
+    { type: "pi", name: "gamma", url: "https://gyre-gamma.tail01ee59.ts.net/inject" },   // 2
+    { type: "pi", name: "delta", url: "https://gyre-delta.tail01ee59.ts.net/inject" },   // 3
+    { type: "pi", name: "epsilon", url: "https://gyre-epsilon.tail01ee59.ts.net/inject" },   // 4
     { type: "pi",    name: "quincy",         url: null },   // 5
     { type: "pi",    name: "falcon",         url: null },   // 6
     { type: "tramp", name: "echothea",       url: "https://www.echothea.com/api/bounce" },               // 7
