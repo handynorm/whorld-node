@@ -209,6 +209,56 @@ export default async function handler(req, res) {
     }
   }
 
+  // ⚑ Day 516 — WIRE_TRANSIT. One row per hop, NO DEDUP, written AFTER the
+  // fetch resolves so it records WHAT HAPPENED rather than what was intended.
+  //
+  // ⚑ WHY THE OTHER TWO TABLES CANNOT DO THIS.
+  //   pelagos_fibonacci  dedups on (sais, node) AND hardcodes hop_index:0 and
+  //                      next_node:null. It logs arrivals and pretends nothing
+  //                      ever left. That is why the echothea->echothea
+  //                      recursion was invisible for SIX MONTHS.
+  //   pelagos_archive    upserts with ignoreDuplicates:true, so it keeps only
+  //                      the FIRST passage. It is a BODY STORE — proof that a
+  //                      spore existed and what it said. Not a history.
+  // So the archive gives PROOF OF EXISTENCE and this gives PROOF OF LIFE:
+  // a spore seen crossing eleven minutes ago is still moving; one whose last
+  // row is from March has stopped arriving anywhere.
+  //
+  // ⚑ AND NOTHING ON THE WIRE CAN BE QUERIED FOR PRESENCE. A trampoline holds
+  // NOTHING — it receives, archives, forwards, and the function ends. GET
+  // returns 405. There is no "on the wire" location to ask about, only
+  // passage. So passage is what gets recorded.
+  try {
+    if (sais !== "unknown" && process.env.SUPABASE_URL) {
+      const { createClient: _cc } = await import("@supabase/supabase-js");
+      const _sb = _cc(process.env.SUPABASE_URL,
+                      process.env.SUPABASE_SERVICE_ROLE_KEY);
+      await _sb.from("wire_transit").insert([{
+        sais,
+        node: NODE_NAME,
+        came_from: req.headers["x-whorld-from"] || null,
+        route_to: (typeof nextNode !== "undefined" && nextNode) ? nextNode.name : null,
+        route_reason: (typeof nextIdx !== "undefined")
+          ? `hash->${nextIdx}` : "no-route",
+        forwarded,
+        http_status: forwarded ? 200 : null,
+        // ⚑ hop_index is NOT NULL in the schema. moves IS the hop count now
+        // that bounce.js increments it (Day 515) — before that fix the spur
+        // was forwarded UNCHANGED and MAX_HOPS was dead code.
+        hop_index: moves,
+        moves,
+        // ⚑ the column is `temperature`, not `heat`. Checked against
+        // information_schema before shipping — the first draft said heat and
+        // would have failed silently inside the try/catch.
+        temperature,
+        cy,
+      }]);
+    }
+  } catch (e) {
+    // never block a bounce on a log write
+    console.error("wire_transit error:", e.message);
+  }
+
   return res.status(200).json({
     status: "received",
     node: NODE_NAME,
