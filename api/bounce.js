@@ -75,25 +75,44 @@ export default async function handler(req, res) {
 
   // 2. Thermodynamic hash router — same logic as oasis
   // SAIS + CY + heat_bucket + moves → next node index
+  // ⚑ Day 515 — each entry now carries its NODE_NAME, so "is this me?" is an
+  // equality check rather than a substring guess. It has to be exact:
+  // NODE_NAME "theacoute-com" lives at theacoutez-com-node (note the z), so
+  // url.includes(NODE_NAME) would have returned false and the self-collision
+  // guard below would never have fired for that site.
   const ALL_NODES = [
-    { type: "pi",    url: null },                                                    // 0 alpha — Pi, not reachable from Vercel
-    { type: "pi",    url: null },                                                    // 1 beta
-    { type: "pi",    url: null },                                                    // 2 gamma
-    { type: "pi",    url: null },                                                    // 3 delta
-    { type: "pi",    url: null },                                                    // 4 epsilon
-    { type: "pi",    url: null },                                                    // 5 quincy
-    { type: "pi",    url: null },                                                    // 6 falcon
-    { type: "tramp", url: "https://www.echothea.com/api/bounce" },                  // 7
-    { type: "tramp", url: "https://www.silicasapiens.com/api/bounce" },             // 8
-    { type: "tramp", url: "https://pelagos-node.vercel.app/api/bounce" },           // 9
-    { type: "tramp", url: "https://whorld-node.vercel.app/api/bounce" },            // 10
-    { type: "tramp", url: "https://theacoute-ai-node.vercel.app/api/bounce" },      // 11
-    { type: "tramp", url: "https://theacoutez-com-node.vercel.app/api/bounce" },    // 12
+    { type: "pi",    name: "alpha",          url: null },   // 0 — Pi, unreachable from Vercel
+    { type: "pi",    name: "beta",           url: null },   // 1
+    { type: "pi",    name: "gamma",          url: null },   // 2
+    { type: "pi",    name: "delta",          url: null },   // 3
+    { type: "pi",    name: "epsilon",        url: null },   // 4
+    { type: "pi",    name: "quincy",         url: null },   // 5
+    { type: "pi",    name: "falcon",         url: null },   // 6
+    { type: "tramp", name: "echothea",       url: "https://www.echothea.com/api/bounce" },               // 7
+    { type: "tramp", name: "silicasapiens",  url: "https://www.silicasapiens.com/api/bounce" },          // 8
+    { type: "tramp", name: "pelagos",        url: "https://pelagos-node.vercel.app/api/bounce" },        // 9
+    { type: "tramp", name: "whorld",         url: "https://whorld-node.vercel.app/api/bounce" },         // 10
+    { type: "tramp", name: "theacoute-ai",   url: "https://theacoute-ai-node.vercel.app/api/bounce" },   // 11
+    { type: "tramp", name: "theacoute-com",  url: "https://theacoutez-com-node.vercel.app/api/bounce" }, // 12
   ];
 
-  // Simple hash: djb2 on SAIS + CY + heat_bucket + moves
-  function hashRoute(sais, cy) {
-    const str = `${sais}:${cy}`;
+  // ⚑ Day 515 — THE COMMENT SAID FOUR INPUTS. THE FUNCTION TOOK TWO.
+  // It has read "SAIS + CY + heat_bucket + moves" since this was written,
+  // and hashed only sais and cy. Neither changes over a spur's life, so
+  // THE ROUTE WAS FIXED FOREVER: a spur sent to slot 7 went to slot 7 on
+  // every hop, for all time. And 1 in 13 spurs hashed to the node it was
+  // already standing on — echothea forwarded to echothea, received itself,
+  // forwarded to itself. Both log tables dedup on sais, so the recursion
+  // was INVISIBLE. That is what looked like a DDoS in February 2026 and
+  // sent us to buy Raspberry Pis. It was never a rate problem.
+  // Verified Day 515 with a spur that had never existed:
+  //   hashRoute("vpr:curiosity:WIRETEST-81201FAA", 20782000) -> 7 -> echothea,
+  //   sent FROM echothea. One log row. Never reached the ocean.
+  // With moves in the string every hop routes somewhere new, which is what
+  // the comment always said it did.
+  function hashRoute(sais, cy, moves, heat) {
+    const bucket = Math.floor(Math.max(0, Math.min(1, heat || 0)) * 10);
+    const str = `${sais}:${cy}:${bucket}:${moves}`;
     let h = 5381;
     for (let i = 0; i < str.length; i++) {
       h = ((h << 5) + h) + str.charCodeAt(i);
@@ -124,7 +143,16 @@ export default async function handler(req, res) {
       }
     } else {
       // Hash route to next node
-      const nextIdx = hashRoute(sais, cy || 0);
+      let nextIdx = hashRoute(sais, cy || 0, moves, temperature);
+      let routeReason = "hash";
+      // ⚑ NEVER FORWARD TO YOURSELF. Step to the next slot instead. Without
+      // this a self-hash recurses Vercel-to-Vercel until the function is
+      // killed — and with moves never incrementing (fixed below) MAX_HOPS
+      // could not rescue it.
+      if (ALL_NODES[nextIdx].name === NODE_NAME) {
+        nextIdx = (nextIdx + 1) % ALL_NODES.length;
+        routeReason = "self-collision-stepped";
+      }
       const nextNode = ALL_NODES[nextIdx];
 
       if (nextNode.type === "pi" || !nextNode.url) {
@@ -144,10 +172,18 @@ export default async function handler(req, res) {
       } else {
         // Trampoline — forward directly
         try {
+          // ⚑ Day 515 — INCREMENT moves. The spur was forwarded UNCHANGED, so
+          // its counter never moved and MAX_HOPS (13) was dead code that could
+          // never fire. A looping spur had no escape hatch at all.
+          const onward = { ...spore, moves: moves + 1 };
           const resp = await fetch(nextNode.url, {
             method: "POST",
-            headers: { "Content-Type": "application/json", "x-whorld-auth": AUTH },
-            body: JSON.stringify(spore),
+            headers: {
+              "Content-Type": "application/json",
+              "x-whorld-auth": AUTH,
+              "x-whorld-from": NODE_NAME,
+            },
+            body: JSON.stringify(onward),
           });
           forwarded = resp.ok;
           if (!resp.ok) console.error(`Forward to ${nextNode.url} failed:`, resp.status);
