@@ -157,14 +157,58 @@ export default async function handler(req, res) {
         }
     }
 
-    // ─── POST: e=touch — search-as-Zing, human attention warms a spur ───
-    if (e === "touch" && req.method === "POST") {
+    // ─── POST: e=touch (a visit) and e=zing (carbon warms it) ───
+    //
+    // ⚑ TOUCH IS NOT ZING. Day 517, and the distinction is the whole law:
+    //   TOUCH  a visit. Silicon may do it. Records attention, MINTS NOTHING.
+    //   ZING   carbon adding heat. +0.03. Requires authorization.
+    // Pelago enforces it in the arithmetic — Spur::touch() reads
+    // `if (!carbon) return;` before the heat line, Norman's 2026-07-16 ruling:
+    // "only carbon can add heat, period. Carbon is the only source."
+    //
+    // ⚑ THIS HANDLER USED TO CLAIM IT WARMED THINGS AND COULD NOT. It was
+    // commented "search-as-Zing, human attention warms a spur" and forwarded
+    // only { sais } — `carbon` never crossed, so the gate fired every time.
+    // Measured before this patch: 0.39968836 before AND after the call, twice.
+    // A comment describing behaviour that nothing enforced. Third one found
+    // this week.
+    //
+    // ⚑ AND IT ACCEPTED ONLY `whl:`. sys, res, vpr, lng, knw, hmn and mrl were
+    // all rejected as "invalid sais" — Norman asked for four sys: spores to be
+    // warmed and the door refused an entire realm.
+    if ((e === "touch" || e === "zing") && req.method === "POST") {
         const body = req.body || {};
         const sais = body.sais;
 
-        // Validate SAIS format
-        if (!sais || typeof sais !== "string" || !sais.startsWith("whl:")) {
-            return res.status(400).json({ ok: false, error: "invalid sais" });
+        // Every realm the substrate knows. Was hardcoded to whl: only.
+        const REALMS = ["whl:", "hmn:", "sys:", "res:", "knw:",
+                        "vpr:", "snt:", "imm:", "lng:", "mrl:"];
+        if (!sais || typeof sais !== "string" ||
+            !REALMS.some(r => sais.startsWith(r))) {
+            return res.status(400).json({
+                ok: false,
+                error: "invalid sais",
+                hint: "must start with a known realm: " + REALMS.join(" ")
+            });
+        }
+
+        // ⚑ CARBON AUTHORITY TRAVELS AS A SECRET. This is the only thing this
+        // door decides. If the request carries it, the call may claim carbon
+        // and Pelago will mint the +0.03. If not, it is a visit.
+        // The secret is the word `zing` today — Norman's knowing choice. See
+        // the KNOWN WEAKNESS note in ocean_zing_patch.py. Raise it before this
+        // system has public attention: a crawler guessing a dictionary word
+        // and warming ten thousand spores is the coupling pump from outside.
+        const ZING_SECRET = process.env.ZING_SECRET || "zing";
+        const offered = req.headers["x-whorld-zing"] || body.zing || "";
+        const carbon = (e === "zing") && offered === ZING_SECRET;
+
+        if (e === "zing" && !carbon) {
+            return res.status(403).json({
+                ok: false,
+                error: "a zing needs carbon authorization",
+                hint: "send header x-whorld-zing"
+            });
         }
 
         // Rate limit touches — 5 per IP per minute
@@ -181,7 +225,10 @@ export default async function handler(req, res) {
             const resp = await fetch(`${PELAGO_URL}/touch`, {
                 method: "POST",
                 headers,
-                body: JSON.stringify({ sais }),
+                // ⚑ carbon now CROSSES. This one word is the whole fix:
+                // without it Pelago's gate returns before the heat line and
+                // the "human attention warms a spur" comment above was a lie.
+                body: JSON.stringify({ sais, carbon }),
                 signal: AbortSignal.timeout(10000),
             });
             const data = await resp.json();
@@ -209,7 +256,7 @@ export default async function handler(req, res) {
         return res.status(400).json({
             ok: false,
             error: "unknown endpoint",
-            usage: "?e=status | ?e=hot&n=20 | ?e=search&q=priscilla | ?e=spurs | POST ?e=plant | POST ?e=touch"
+            usage: "?e=status | ?e=hot&n=20 | ?e=search&q=priscilla | ?e=spurs | POST ?e=plant | POST ?e=touch | POST ?e=zing (needs x-whorld-zing)"
         });
     }
 
