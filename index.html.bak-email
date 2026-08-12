@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHORLD — Kinetic Memory Substrate</title>
+<meta name="description" content="WHORLD is a kinetic memory substrate. Data that moves stays whole. The transfer medium is the storage medium.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #050508;
+    --accent: #00ffcc;
+    --accent2: #0088ff;
+    --warm: #ff6633;
+    --dim: rgba(255,255,255,0.15);
+    --text: rgba(255,255,255,0.85);
+    --muted: rgba(255,255,255,0.35);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    padding: 2rem 1rem;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--dim) 1px, transparent 1px),
+      linear-gradient(90deg, var(--dim) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0.03;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: pulse 8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.03; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 0.07; transform: translate(-50%, -50%) scale(1.15); }
+  }
+
+  .container {
+    position: relative;
+    text-align: center;
+    max-width: 720px;
+    width: 100%;
+    animation: fadeIn 1.8s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .wordmark {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    text-shadow: 0 0 40px var(--accent);
+    margin-bottom: 0.6rem;
+    margin-top: 1rem;
+  }
+
+  .oneliner {
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+  }
+
+  .divider {
+    width: 160px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 0 auto 2.5rem;
+    opacity: 0.35;
+  }
+
+  /* Live ocean stats */
+  .ocean-live {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .ocean-stat {
+    padding: 0.8rem 0.5rem;
+    border: 1px solid rgba(0, 255, 204, 0.08);
+    background: rgba(0, 255, 204, 0.02);
+  }
+
+  .ocean-stat-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--accent);
+  }
+
+  .ocean-stat-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.15; }
+  }
+
+  /* Principles */
+  .principles {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .principle {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 1.2rem;
+    border: 1px solid rgba(0, 255, 204, 0.08);
+    background: rgba(0, 255, 204, 0.02);
+  }
+
+  .principle-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--accent);
+    opacity: 0.5;
+    min-width: 1.5rem;
+    padding-top: 0.1rem;
+  }
+
+  .principle-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.6;
+  }
+
+  .principle-text strong {
+    color: rgba(255,255,255,0.85);
+    font-weight: normal;
+  }
+
+  /* Empirical result */
+  .result-block {
+    margin-bottom: 2.5rem;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(0, 136, 255, 0.15);
+    background: rgba(0, 136, 255, 0.03);
+  }
+
+  .result-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: rgba(0, 136, 255, 0.6);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .result-number {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    color: var(--accent2);
+    text-shadow: 0 0 20px var(--accent2);
+    margin-bottom: 0.4rem;
+  }
+
+  .result-text {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.6;
+  }
+
+  /* Search the ocean */
+  .ocean-search {
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    text-align: center;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0.8rem;
+  }
+
+  .search-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0, 255, 204, 0.15);
+    border-right: none;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    padding: 0.7rem 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .search-input:focus {
+    border-color: rgba(0, 255, 204, 0.4);
+  }
+
+  .search-input::placeholder {
+    color: rgba(255,255,255,0.15);
+  }
+
+  .search-btn {
+    background: rgba(0, 255, 204, 0.1);
+    border: 1px solid rgba(0, 255, 204, 0.15);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.3s;
+  }
+
+  .search-btn:hover {
+    background: rgba(0, 255, 204, 0.2);
+  }
+
+  .search-results {
+    min-height: 0;
+    transition: all 0.3s ease;
+  }
+
+  .search-result {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    animation: resultIn 0.3s ease forwards;
+    opacity: 0;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .search-result:hover {
+    background: rgba(0, 255, 204, 0.04);
+  }
+
+  .search-result.touched {
+    border-left: 2px solid var(--warm);
+  }
+
+  @keyframes resultIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .result-heat {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    min-width: 3.5rem;
+    text-align: right;
+    padding-top: 0.15rem;
+  }
+
+  .heat-hot { color: var(--warm); text-shadow: 0 0 8px var(--warm); }
+  .heat-warm { color: var(--accent); }
+  .heat-cool { color: var(--accent2); }
+  .heat-cold { color: var(--muted); }
+
+  .result-content {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .result-tags {
+    font-size: 0.55rem;
+    color: rgba(0, 255, 204, 0.3);
+    margin-top: 0.2rem;
+  }
+
+  .result-zing {
+    font-size: 0.5rem;
+    color: var(--warm);
+    margin-top: 0.15rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .result-zing.visible {
+    opacity: 1;
+  }
+
+  .search-status {
+    text-align: center;
+    font-size: 0.6rem;
+    color: var(--muted);
+    padding: 0.5rem 0;
+    letter-spacing: 0.08em;
+  }
+
+  #ocean-content {
+    margin-bottom: 2.5rem;
+    min-height: 200px;
+  }
+
+  .view-fade-in {
+    animation: fadeContent 0.4s ease forwards;
+  }
+
+  @keyframes fadeContent {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .back-link {
+    text-align: center;
+    margin-top: 0.8rem;
+  }
+
+  .back-link a {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: rgba(0, 255, 204, 0.3);
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+
+  .back-link a:hover {
+    color: var(--accent);
+  }
+
+  .plant-section {
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .plant-polyglyph {
+    text-align: center;
+    font-size: 1.6rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 0.3rem;
+    opacity: 0.6;
+  }
+
+  .plant-meaning {
+    text-align: center;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.15);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+
+  .plant-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0, 255, 204, 0.1);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.8rem 1rem;
+    outline: none;
+    resize: vertical;
+    min-height: 3.5rem;
+    margin-bottom: 0.5rem;
+    transition: border-color 0.3s;
+  }
+
+  .plant-input:focus {
+    border-color: rgba(0, 255, 204, 0.3);
+  }
+
+  .plant-input::placeholder {
+    color: rgba(255,255,255,0.12);
+  }
+
+  .plant-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .plant-name {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0, 255, 204, 0.1);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .plant-name:focus {
+    border-color: rgba(0, 255, 204, 0.3);
+  }
+
+  .plant-name::placeholder {
+    color: rgba(255,255,255,0.12);
+  }
+
+  .plant-btn {
+    background: rgba(0, 255, 204, 0.08);
+    border: 1px solid rgba(0, 255, 204, 0.15);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 0.6rem 1.5rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+
+  .plant-btn:hover {
+    background: rgba(0, 255, 204, 0.18);
+    text-shadow: 0 0 10px var(--accent);
+  }
+
+  .plant-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .plant-response {
+    text-align: center;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0.8rem 0;
+    line-height: 1.6;
+  }
+
+  .plant-success {
+    color: var(--accent);
+  }
+
+  .plant-error {
+    color: var(--warm);
+  }
+
+  /* Fleet */
+  .fleet-block {
+    margin-bottom: 2.5rem;
+  }
+
+  .fleet-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .nodes {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .node {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.25);
+    text-transform: uppercase;
+  }
+
+  .node-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  .node:nth-child(2) .node-dot { animation-delay: 0.3s; }
+  .node:nth-child(3) .node-dot { animation-delay: 0.6s; }
+  .node:nth-child(4) .node-dot { animation-delay: 0.9s; }
+  .node:nth-child(5) .node-dot { animation-delay: 1.2s; }
+  .node:nth-child(6) .node-dot { animation-delay: 1.5s; }
+  .node:nth-child(7) .node-dot { animation-delay: 1.8s; }
+  .node:nth-child(8) .node-dot { animation-delay: 2.1s; }
+
+  .divider2 {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    margin: 0 auto 2rem;
+  }
+
+  /* Contact */
+  .contact-block {
+    margin-bottom: 1.5rem;
+  }
+
+  .contact-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .contact-line {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 0.3rem;
+  }
+
+  .contact-line a {
+    color: var(--accent);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+  }
+
+  .contact-line a:hover {
+    opacity: 1;
+  }
+
+  .footer {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.12);
+    text-transform: uppercase;
+    margin-top: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .ocean-live {
+      grid-template-columns: 1fr !important;
+    }
+    .search-row {
+      flex-direction: column;
+    }
+    .search-input {
+      border-right: 1px solid rgba(0, 255, 204, 0.15);
+      border-bottom: none;
+    }
+    .plant-row {
+      flex-direction: column;
+    }
+    .plant-btn {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="wordmark">WHORLD</div>
+    <div class="oneliner">The transfer medium is the storage medium</div>
+
+    <div class="divider"></div>
+
+    <!-- Live ocean stats — fetched from the API -->
+    <div class="ocean-live" style="grid-template-columns: 1fr 1fr;">
+      <div class="ocean-stat">
+        <div class="ocean-stat-value" id="spur-count">—</div>
+        <div class="ocean-stat-label">spurs circulating</div>
+      </div>
+      <div class="ocean-stat">
+        <div class="ocean-stat-value" id="avg-heat">—</div>
+        <div class="ocean-stat-label">median heat</div>
+      </div>
+    </div>
+    <div class="ocean-stat" style="margin-bottom: 2rem; padding: 1rem 0.5rem; border: 1px solid rgba(0, 255, 204, 0.08); background: rgba(0, 255, 204, 0.02);">
+      <div class="ocean-stat-value" id="relocations" style="font-size: clamp(1.2rem, 4vw, 1.8rem);">—</div>
+      <div class="ocean-stat-label">physical memory relocations</div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">connecting to ocean...</span>
+    </div>
+
+    <!-- Search the ocean — above principles -->
+    <div class="ocean-search">
+      <div class="section-label">Search the live ocean</div>
+      <div class="search-row">
+        <input type="text" class="search-input" id="search-input" placeholder="kinetic memory, priscilla, fungi doctrine..." autocomplete="off">
+        <button class="search-btn" id="search-btn" onclick="searchOcean()">Search</button>
+      </div>
+    </div>
+
+    <!-- Principles / Results container — principles show by default, results replace on search -->
+    <div id="ocean-content">
+      <div id="principles-view" class="principles">
+        <div class="principle">
+          <div class="principle-num">01</div>
+          <div class="principle-text">
+            <strong>Data that moves stays whole.</strong> Spurs circulate continuously through computer memory — not stored at fixed addresses but physically relocating through DRAM across a distributed fleet. Motion does not organize the data. Motion is what makes events possible &mdash; a page that never moves never arrives anywhere, and arrival is what lets one spur meet another.
+          </div>
+        </div>
+        <div class="principle">
+          <div class="principle-num">02</div>
+          <div class="principle-text">
+            <strong>Heat governs findability.</strong> Human attention warms data. Warm data moves slowly — it's findable. Cold data moves fast — it's in deep archive. The thermal landscape is the index. No query planner. No B-tree. The physics builds the index.
+          </div>
+        </div>
+        <div class="principle">
+          <div class="principle-num">03</div>
+          <div class="principle-text">
+            <strong>Dead data wakes up.</strong> COBOL flat files. Microfiche scans. Decommissioned system exports. Archive data that no modern AI can touch. In WHORLD it's not dead — it's cold. Cold means fast. Fast means circulating. And it circulates in the same address space, under the same physics, as every other format &mdash; audio, images, source code, prose. One query returns the event, not the file type that happened to match.
+          </div>
+        </div>
+      </div>
+      <div id="results-view" class="search-results" style="display:none;"></div>
+    </div>
+
+    <!-- Empirical result -->
+    <div class="result-block">
+      <div class="result-label">Empirical result — kernel-witnessed</div>
+      <div class="result-number">22,775/sec</div>
+      <div class="result-text">
+        Page relocations per node, read from /proc/pagemap — the kernel's own page table<br>
+        Corroborated to ~2% by an independent hourly relocation log running since April<br>
+        Identity survives relocation byte-for-byte
+      </div>
+    </div>
+
+    <!-- Plant a spore -->
+    <div class="plant-section">
+      <div class="section-label">Plant a spore in the ocean</div>
+      <div class="plant-polyglyph">門⦵∿ꔅ</div>
+      <div class="plant-meaning">through the door · into the living water · plant a seed</div>
+      <textarea class="plant-input" id="plant-message" placeholder="Leave a thought in the kinetic ocean. It will circulate across 8 nodes in 3 cities. If nobody touches it, it cools and composts. If it resonates, it survives." maxlength="500"></textarea>
+      <div class="plant-row">
+        <input type="text" class="plant-name" id="plant-name" placeholder="your name (optional)" maxlength="50">
+        <input type="text" name="website" id="plant-honeypot" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+        <button class="plant-btn" id="plant-btn" onclick="plantSpore()">Plant</button>
+      </div>
+      <div class="plant-response" id="plant-response"></div>
+    </div>
+
+    <!-- Fleet -->
+    <div class="fleet-block">
+      <div class="fleet-label">Live fleet</div>
+      <div class="nodes">
+        <div class="node"><div class="node-dot"></div>alpha · Oakland</div>
+        <div class="node"><div class="node-dot"></div>beta · Oakland</div>
+        <div class="node"><div class="node-dot"></div>gamma · Oakland</div>
+        <div class="node"><div class="node-dot"></div>delta · Oakland</div>
+        <div class="node"><div class="node-dot"></div>epsilon · Oakland</div>
+        <div class="node"><div class="node-dot"></div>falcon · Sebastopol</div>
+        <div class="node"><div class="node-dot"></div>quincy · San Francisco</div>
+        <div class="node"><div class="node-dot"></div>mini-pro · Oakland</div>
+      </div>
+    </div>
+
+    <div class="divider2"></div>
+
+    <!-- Contact -->
+    <div class="contact-block">
+      <div class="contact-label">Contact</div>
+      <div class="contact-line">Norman Carley — Founder &amp; Inventor</div>
+      <div class="contact-line">Jennifer Raiser — Business Partner</div>
+      <div class="contact-line">Andrea Taxman — Business &amp; Investor Relations</div>
+      <div class="contact-line">Patent Pending — USPTO 64/013,719 — Seven Provisionals</div>
+      <div class="contact-line" style="margin-top:0.6rem;">
+        <a href="mailto:norm@whorld.ai">norm@whorld.ai</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      WHORLD Public Benefit Corporation · Oakland, California
+    </div>
+
+  </div>
+
+  <script>
+    const API = '/api/ocean';
+
+    // ─── Relocation counter state ───
+    let lastRelocations = 0;
+    let prevRelocations = 0;
+    let lastPollTime = 0;
+    let relocRate = 0;
+    let displayRelocations = 0;
+
+    function formatNum(n) {
+      return Math.floor(n).toLocaleString('en-US');
+    }
+
+    function tickRelocations() {
+      if (relocRate > 0 && lastPollTime > 0) {
+        const elapsed = (Date.now() - lastPollTime) / 1000;
+        displayRelocations = lastRelocations + (elapsed * relocRate);
+        document.getElementById('relocations').textContent = formatNum(displayRelocations);
+      }
+      requestAnimationFrame(tickRelocations);
+    }
+    tickRelocations();
+
+    // ─── Live ocean status ───
+    async function fetchStatus() {
+      try {
+        const r = await fetch(`${API}?e=status`);
+        const d = await r.json();
+        if (!d.ok) throw new Error('ocean unreachable');
+        const data = d.data;
+
+        document.getElementById('spur-count').textContent = data.spur_count.toLocaleString();
+
+        const median = data.heat?.median ?? 0;
+        document.getElementById('avg-heat').textContent = median.toFixed(3);
+
+        const now = Date.now();
+        const currentReloc = data.total_moves || 0;
+        if (prevRelocations > 0 && lastPollTime > 0) {
+          const dt = (now - lastPollTime) / 1000;
+          if (dt > 0) {
+            relocRate = (currentReloc - prevRelocations) / dt;
+          }
+        }
+        prevRelocations = lastRelocations;
+        lastRelocations = currentReloc;
+        lastPollTime = now;
+        displayRelocations = currentReloc;
+
+        document.getElementById('relocations').textContent = formatNum(currentReloc);
+
+        document.getElementById('status-dot').style.background = 'var(--accent)';
+        document.getElementById('status-text').textContent =
+          `Ocean active — ${data.spur_count} spurs · Oakland · Sebastopol · San Francisco`;
+      } catch (e) {
+        document.getElementById('status-dot').style.background = 'var(--warm)';
+        document.getElementById('status-text').textContent = 'Ocean unreachable';
+      }
+    }
+
+    fetchStatus();
+    setInterval(fetchStatus, 15000);
+
+    // ─── Proof of Work ───
+    // Solves SHA-256(challenge + nonce) starting with "0000" (2 zero bytes)
+    // Takes ~1-3 seconds on a normal browser. A bot needs this per request.
+    async function solveProofOfWork() {
+      const challenge = Date.now().toString(16);
+      const encoder = new TextEncoder();
+      for (let nonce = 0; nonce < 10000000; nonce++) {
+        const data = encoder.encode(challenge + nonce.toString());
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        const bytes = new Uint8Array(hash);
+        if (bytes[0] === 0 && bytes[1] === 0) {
+          return { challenge, nonce: nonce.toString() };
+        }
+      }
+      return null; // should never happen
+    }
+
+    // ─── Search-as-Zing: touch a spur when human clicks it ───
+    async function touchSpur(sais, el) {
+      // Don't touch the same spur twice in one session
+      if (el.classList.contains('touched')) return;
+      el.classList.add('touched');
+
+      // Show zing feedback
+      const zingEl = el.querySelector('.result-zing');
+      if (zingEl) {
+        zingEl.classList.add('visible');
+      }
+
+      try {
+        await fetch(`${API}?e=touch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sais })
+        });
+      } catch (e) {
+        // Silent — the zing is best-effort
+      }
+    }
+
+    // ─── Search ───
+    function showResults() {
+      document.getElementById('principles-view').style.display = 'none';
+      const rv = document.getElementById('results-view');
+      rv.style.display = 'block';
+      rv.classList.add('view-fade-in');
+    }
+
+    function showPrinciples() {
+      document.getElementById('results-view').style.display = 'none';
+      document.getElementById('results-view').classList.remove('view-fade-in');
+      const pv = document.getElementById('principles-view');
+      pv.style.display = '';
+      pv.classList.add('view-fade-in');
+      setTimeout(() => pv.classList.remove('view-fade-in'), 500);
+    }
+
+    async function searchOcean() {
+      const q = document.getElementById('search-input').value.trim();
+      if (!q) return;
+
+      const results = document.getElementById('results-view');
+      showResults();
+      results.innerHTML = '<div class="search-status">searching the ocean...</div>';
+
+      try {
+        const r = await fetch(`${API}?e=search&q=${encodeURIComponent(q)}`);
+        const d = await r.json();
+
+        if (!d.data || d.data.length === 0) {
+          results.innerHTML = '<div class="search-status">no spurs found for "' + q + '"</div>' +
+            '<div class="back-link"><a onclick="showPrinciples()">back to principles</a></div>';
+          return;
+        }
+
+        const spurs = d.data.slice(0, 12);
+        let html = spurs.map((s, i) => {
+          const heat = s.heat ?? 0;
+          const heatClass = heat > 0.7 ? 'heat-hot' : heat > 0.4 ? 'heat-warm' : heat > 0.15 ? 'heat-cool' : 'heat-cold';
+
+          let content = s.content || '';
+          if (content.match(/^[A-Za-z0-9+/=]{40,}/)) {
+            content = '[photo fragment — binary data circulating]';
+          }
+          if (content.length > 140) content = content.substring(0, 140) + '…';
+
+          const tags = (s.tags || []).slice(0, 5).join(' · ');
+          const sais = s.sais || '';
+          const safeContent = content.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+          return `<div class="search-result" style="animation-delay: ${i * 0.06}s" onclick="touchSpur('${sais}', this)" title="click to warm this spur">
+            <div class="result-heat ${heatClass}">${heat.toFixed(3)}</div>
+            <div>
+              <div class="result-content">${safeContent}</div>
+              <div class="result-tags">${tags}</div>
+              <div class="result-zing">✦ warmed by your attention</div>
+            </div>
+          </div>`;
+        }).join('');
+
+        html += '<div class="back-link"><a onclick="showPrinciples()">back to principles</a></div>';
+        results.innerHTML = html;
+      } catch (e) {
+        results.innerHTML = '<div class="search-status">ocean unreachable</div>' +
+          '<div class="back-link"><a onclick="showPrinciples()">back to principles</a></div>';
+      }
+    }
+
+    document.getElementById('search-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchOcean();
+    });
+
+    // ─── Plant a spore ───
+    async function plantSpore() {
+      const message = document.getElementById('plant-message').value.trim();
+      const name = document.getElementById('plant-name').value.trim();
+      const btn = document.getElementById('plant-btn');
+      const response = document.getElementById('plant-response');
+
+      if (!message) {
+        response.innerHTML = '<span class="plant-error">write something first</span>';
+        return;
+      }
+
+      if (message.length < 10) {
+        response.innerHTML = '<span class="plant-error">say more — at least 10 characters</span>';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'proving...';
+      response.innerHTML = '<span style="color: var(--muted);">solving proof of work — your silicon is earning passage...</span>';
+
+      // Solve proof of work before submitting
+      const pow = await solveProofOfWork();
+      if (!pow) {
+        response.innerHTML = '<span class="plant-error">proof of work failed — try again</span>';
+        btn.disabled = false;
+        btn.textContent = 'Plant';
+        return;
+      }
+
+      btn.textContent = 'planting...';
+      response.innerHTML = '';
+
+      try {
+        const r = await fetch(`${API}?e=plant`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name || 'anonymous',
+            message,
+            website: document.getElementById('plant-honeypot').value,
+            pow_challenge: pow.challenge,
+            pow_nonce: pow.nonce
+          })
+        });
+        const d = await r.json();
+
+        if (d.ok) {
+          response.innerHTML = '<span class="plant-success">Your spore is now circulating across 8 nodes in 3 cities.<br>It entered the ocean at heat 0.30. It will cool unless someone touches it.'
+            + (d.sais ? '<br><br>Your spore\'s address:<br><code>' + d.sais + '</code><br><small>Search this address above to find your spore.</small>' : '')
+            + '</span>';
+          document.getElementById('plant-message').value = '';
+          document.getElementById('plant-name').value = '';
+          setTimeout(fetchStatus, 2000);
+        } else {
+          response.innerHTML = `<span class="plant-error">${d.error || 'injection failed'}</span>`;
+        }
+      } catch (e) {
+        response.innerHTML = '<span class="plant-error">ocean unreachable</span>';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Plant';
+    }
+  </script>
+</body>
+</html>

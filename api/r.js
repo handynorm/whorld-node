@@ -1,4 +1,4 @@
-// api/r/[...path].js
+// api/r.js
 //
 // ⚑ THE ASCII RELAY — one path, no query string, no Unicode.
 //
@@ -67,21 +67,27 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "no-store, max-age=0");
 
-  const parts = (req.query.path || []).map(String);
-  const verb = parts[0] || "";
-  const arg = parts.slice(1).join("/");
+  // ⚑ CORRECTED, Day 519. The first attempt used a catch-all path segment
+  // ([...path].js). This project has no vercel.json and a flat api/ directory,
+  // so catch-all routing does not apply and it 404ed.
+  // AND THE PATH WAS NEVER NECESSARY. The broker rewrites because of UNICODE,
+  // not because a query string exists. base64url is A-Z a-z 0-9 - _ and has
+  // nothing to percent-encode, so ?q=5L-u4ouH4oaj arrives character-for-
+  // character as sent and the authorization check passes.
+  const verb = String(req.query.e || "");
+  const arg  = String(req.query.q || "");
 
   // ── the encode helper ────────────────────────────────────────────────
   // ⚑ Not a proxy. It answers "what is the base64url for this text" so a
   // caller that cannot encode locally can still construct a swim URL. The
   // input here is allowed to be Unicode because NOTHING IS FETCHED with it.
   if (verb === "enc") {
-    const text = decodeURIComponent(arg);
+    const text = arg;
     return res.status(200).json({
       ok: true,
       text,
       encoded: b64urlEncode(text),
-      url: `/api/r/s/${b64urlEncode(text)}`,
+      url: `/api/r?e=s&q=${b64urlEncode(text)}`,
     });
   }
 
@@ -101,10 +107,10 @@ export default async function handler(req, res) {
         ok: false,
         error: "unknown route",
         usage: {
-          swim: "/api/r/s/<base64url of the query>",
-          hot: "/api/r/hot/<n>",
-          status: "/api/r/status",
-          encode: "/api/r/enc/<text> — returns the base64url and the swim URL",
+          swim: "/api/r?e=s&q=<base64url of the query>",
+          hot: "/api/r?e=hot&q=<n>",
+          status: "/api/r?e=status",
+          encode: "/api/r?e=enc&q=<text> — returns the base64url and the swim URL",
         },
         note: "ASCII only in the path. No query string. Nothing to normalize.",
       });
