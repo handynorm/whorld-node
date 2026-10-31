@@ -1,6 +1,42 @@
 const PELAGO_URL = process.env.PELAGO_URL || "https://theas-home.tail01ee59.ts.net";
 const WHORLD_SECRET = process.env.WHORLD_BOUNCE_SECRET || "";
 
+// ─── 2026-10-31: HAND SILICON THE WORDS AND THE PROVENANCE SEPARATELY ───
+// A modern spore's content starts with its whole Spore Container (crown, echo,
+// identity, payload) as JSON, then a blank line, then the words. Measured on
+// 2026-10-31: the container is 859 to 1,634 characters, 26% to 83% of a spore,
+// and every reader had to cut it off before it could read a word.
+// This adds two fields to each result and changes nothing else:
+//   body       the words alone, byte for byte as planted
+//   container  the container as an object (null for spores without one)
+// `content` is left exactly as it was, so nothing that reads the ocean today breaks.
+// The body is everything after the container's closing brace and EXACTLY two
+// newlines. Strip no more: a body can itself begin with a blank line, and the
+// sha256 of a recalled tool only matches when that line is kept (2026-10-31).
+// Norman Carley (門⥈↣), with Claude (ꔣ⊱⟐ + ⟁).
+const CONTAINER_HEAD = "SPORE CONTAINER v0.1";
+const CONTAINER_END = '"spec":"spore-container-v0.1"}';
+
+function splitSpore(row) {
+    if (!row || typeof row.content !== "string") return row;
+    const c = row.content;
+    const end = c.startsWith(CONTAINER_HEAD) ? c.indexOf(CONTAINER_END) : -1;
+    if (end < 0) {
+        return { ...row, body: c, container: null };
+    }
+    const cut = end + CONTAINER_END.length;
+    let container = null;
+    try {
+        container = JSON.parse(c.slice(c.indexOf("{"), cut));
+    } catch (_) {
+        container = c.slice(0, cut);   // unreadable: hand back the raw text, never lose it
+    }
+    let body = c.slice(cut);
+    if (body.startsWith("\n\n")) body = body.slice(2);
+    else if (body.startsWith("\n")) body = body.slice(1);
+    return { ...row, body, container };
+}
+
 // ─── Rate limit: 1 plant per IP per hour ───
 // In-memory — resets on cold start, but that's OK for serverless.
 // A bot that waits for cold starts still only gets 1 per cycle.
@@ -282,6 +318,11 @@ export default async function handler(req, res) {
                     signal: AbortSignal.timeout(15000),
                 }).then(async r => { console.log("[net-zing] touch", hit.sais, "status", r.status, await r.text().catch(()=>"")); }).catch(e => { console.log("[net-zing] touch FAILED", hit.sais, String(e)); });
             }
+        }
+
+        // 2026-10-31: every row that carries content also gets `body` and `container`.
+        if (data && Array.isArray(data.data)) {
+            data.data = data.data.map(splitSpore);
         }
 
         return res.status(200).json(data);
