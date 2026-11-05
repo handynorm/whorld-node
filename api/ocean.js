@@ -297,9 +297,18 @@ export default async function handler(req, res) {
     }
 
     try {
+        // ⚑ 2026-11-04 (Norman Carley, with Claude ⊢潔↣ + ⟁): THE DOOR WAITED TEN SECONDS
+        // AND THE WHOLE TRIP TAKES ELEVEN. Measured on the cast
+        // limit:500:lucia-reflections-of-amma (Amanda Lucia's book, 476 pieces):
+        // the Mini answers itself in 2.5 to 3.4 s (engine 0.09 s, peers in
+        // parallel); through this door the same cast took 7.2 s once and hit the
+        // 10 s limit twice in three. The seconds are here: 1.4 MB in over the
+        // tailnet, every row split, 2.6 MB out. A reader asking for a whole work
+        // got "ocean unreachable" two times in three. Twenty-five seconds is under
+        // the function's own ceiling and above the slowest trip seen.
         const resp = await fetch(`${PELAGO_URL}${path}`, {
             headers: { "Accept": "application/json" },
-            signal: AbortSignal.timeout(10000),
+            signal: AbortSignal.timeout(25000),
         });
         const data = await resp.json();
 
@@ -321,8 +330,20 @@ export default async function handler(req, res) {
         }
 
         // 2026-10-31: every row that carries content also gets `body` and `container`.
+        // ⚑ 2026-11-04: A READER MAY ASK TO LEAVE `content` OUT. body plus container
+        // rebuild it byte for byte (232 checks, 2026-10-31), so carrying all three
+        // nearly doubles every answer (1.4 MB in, 2.6 MB out on the cast above).
+        // Default is unchanged: the courier's recall and the mcp connector both
+        // read content today, so it stays unless the request says &lean=1. The
+        // seal is computed over content, so a seal check never sends lean.
         if (data && Array.isArray(data.data)) {
-            data.data = data.data.map(splitSpore);
+            const lean = String(req.query.lean || "") === "1";
+            data.data = data.data.map(splitSpore).map(row => {
+                if (!lean || !row || typeof row.content !== "string" || typeof row.body !== "string") return row;
+                const { content, ...rest } = row;
+                return rest;
+            });
+            if (lean) data.content_omitted = true;
         }
 
         return res.status(200).json(data);
