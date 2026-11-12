@@ -312,9 +312,16 @@ export default async function handler(req, res) {
         });
         const data = await resp.json();
 
-        // ─── SEARCH-AS-ZING: a swim is carbon attention. The net warms what it catches. ───
-        // Fire-and-forget gentle touches on the top results. Never blocks or breaks the
-        // search response — heat injection is a side effect, not a dependency.
+        // ─── SEARCH RECORDS ATTENTION, NOT HEAT ───
+        // Fire-and-forget touch on the top result. Never blocks or breaks the search
+        // response. ⚑ 2026-11-11 (Norman Carley 門⥈↣, with Claude 橋⋬✶ + ⟁): this used to
+        // say "a swim is carbon attention. The net warms what it catches." It does not
+        // warm. The touch carries no "carbon" field, Pelago's /touch defaults carbon to
+        // false, and a silicon touch records the visit (recency, touch count) and adds no
+        // heat (Day 514: silicon may not create heat; Day 517: carbon is an argument).
+        // Norman: an instance's swim "might count as attention, but it shouldn't count
+        // as heat." This door cannot tell a person from an instance, so it never sends
+        // carbon: true. Settled in the ocean: whl:drift-patch:1bd214c.
         if (e === "search" && data && Array.isArray(data.data)) {
             const zHeaders = { "Content-Type": "application/json" };
             if (WHORLD_SECRET) zHeaders["x-whorld-auth"] = WHORLD_SECRET;
